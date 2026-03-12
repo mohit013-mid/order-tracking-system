@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6fb;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            padding: 40px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f2f2f2;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: black;
+        }
+
+        .created {
+            background: #ffe08a
+        }
+
+        .packed {
+            background: #ffd280
+        }
+
+        .shipped {
+            background: #9be7a3
+        }
+
+        .out_for_delivery {
+            background: #87cefa
+        }
+
+        .delivered {
+            background: #b2ffb2
+        }
+
+        .assign-btn {
+            padding: 6px 10px;
+            border: none;
+            background: #4facfe;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .assign-btn:hover {
+            background: #3a8de0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            background: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Admin Dashboard</h1>
+
+        <nav>
+            <a href="#">Orders</a>
+            <a href="/api/auth/admin_product">Products</a>
+            <a href="#">Users</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </nav>
+    </header>
+
+    <div class="container">
+
+        <h2>All Orders</h2>
+
+        <table>
+
+            <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Status</th>
+                <th>Assign Agent</th>
+            </tr>
+
+            {% for order in orders %}
+
+            <tr>
+
+                <td>{{ order.id }}</td>
+
+                <td>{{ order.customer.username }}</td>
+
+                <td>{{ order.product.name }}</td>
+
+                <td>
+                    <span class="status {{ order.status|lower }}">
+                        {{ order.status }}
+                    </span>
+                </td>
+
+                <td>
+
+                    <select id="agent-{{ order.id }}">
+                        <option value="">Select Agent</option>
+
+                        {% for agent in agents %}
+                        <option value="{{ agent.user.id }}">
+                            {{ agent.user.username }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+
+                    <button class="assign-btn" onclick="assignAgent({{ order.id }})">
+                        Assign
+                    </button>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+    </div>
+
+    <footer>
+        © 2026 Admin Panel
+    </footer>
+
+    <script>
+
+        async function assignAgent(orderId) {
+
+            const agentId = document.getElementById("agent-" + orderId).value;
+
+            if (!agentId) {
+                alert("Please select an agent");
+                return;
+            }
+
+            let token = localStorage.getItem("access");
+
+            let response = await fetch("/api/auth/assign-agent/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    agent_id: agentId
+                })
+            });
+
+            // If access token expired
+            if (response.status === 401) {
+
+                try {
+
+                    token = await refreshAccessToken();
+
+                    response = await fetch("/api/auth/assign-agent/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + token
+                        },
+                        body: JSON.stringify({
+                            order_id: orderId,
+                            agent_id: agentId
+                        })
+                    });
+
+                } catch (error) {
+                    alert("Session expired. Please login again.", error );
+                    window.location.href = "/login/";
+                    return;
+                }
+            }
+
+            if (!response.ok) {
+                alert("Assignment failed");
+                return;
+            }
+
+            alert("Agent assigned successfully");
+            location.reload();
+        }
+
+        async function refreshAccessToken() {
+
+            const refresh = localStorage.getItem("refresh");
+            console.log("refresh")
+
+            const response = await fetch("/api/auth/token/refresh/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ refresh: refresh })
+            });
+
+            const data = await response.json();
+
+            localStorage.setItem("access", data.access);
+
+            return data.access;
+        }
+
+        function logout() {
+            localStorage.removeItem("access");
+            window.location.href = "/api/auth/login-page/";
+        }
+
+    </script>
+
+</body>
+
+</html>

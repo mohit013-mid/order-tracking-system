@@ -1,0 +1,22 @@
+env/
+__pycache__/
+*.pyc
+*.pyo
+
+# database
+*.db
+users.db
+
+# uploads
+app/uploads/
+
+# logs
+*.log
+
+# node
+node_modules/
+
+# OS / IDE
+.vscode/
+.idea/
+.DS_Store

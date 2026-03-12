@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        form {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 320px;
+            animation: slideUp 0.6s ease;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #4facfe;
+            box-shadow: 0 0 5px rgba(79, 172, 254, 0.6);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #message {
+            text-align: center;
+            color: red;
+            margin-top: 10px;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .register-link a {
+            color: #4facfe;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <form id="loginForm">
+
+        <h2>Login</h2>
+
+        <label>Username</label><br>
+        <input type="text" id="username"><br><br>
+
+        <label>Password</label><br>
+        <input type="password" id="password"><br><br>
+
+        <button type="submit">Login</button>
+
+        <p id="message"></p>
+
+        <div class="register-link">
+            Don't have an account? <a href="/api/auth/register/">Register</a>
+        </div>
+
+    </form>
+
+    <script>
+
+        document.getElementById("loginForm").addEventListener("submit", function (e) {
+
+            e.preventDefault();
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            fetch("/api/auth/login/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+
+                    if (data.access) {
+
+                        // store tokens
+                        localStorage.setItem("access", data.access);
+                        localStorage.setItem("refresh", data.refresh);
+
+                        const role = data.role;
+
+                        if (role === "ADMIN") {
+                            window.location.href = "/api/auth/admin-dashboard/";
+                        }
+                        else if (role === "CUSTOMER") {
+                            window.location.href = "/api/auth/customer-dashboard/";
+                        }
+                        else if (role === "AGENT") {
+                            window.location.href = "/api/auth/agent-dashboard/";
+                        }
+
+                    } else {
+                        document.getElementById("message").innerText = "Invalid login";
+                    }
+
+                });
+
+        });
+
+    </script>
+
+</body>
+
+</html>

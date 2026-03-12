@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6fb;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            padding: 40px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f2f2f2;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: black;
+        }
+
+        .created {
+            background: #ffe08a
+        }
+
+        .packed {
+            background: #ffd280
+        }
+
+        .shipped {
+            background: #9be7a3
+        }
+
+        .out_for_delivery {
+            background: #87cefa
+        }
+
+        .delivered {
+            background: #b2ffb2
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            background: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>My Orders</h1>
+
+        <nav>
+            <a href="/api/auth/customer-dashboard/">Dashboard</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </nav>
+    </header>
+
+    <div class="container">
+
+        <h2>Your Orders</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Product</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+
+            <tbody id="ordersTable">
+
+                <tr>
+                    <td colspan="4">Loading orders...</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <script>
+
+        const access = localStorage.getItem("access");
+
+        if (!access) {
+            window.location.href = "/api/auth/login-page/";
+        }
+
+        fetch("/api/auth/customer_order_api/", {
+
+            method: "GET",
+
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + access
+            }
+
+        })
+            .then(res => res.json())
+            .then(data => {
+
+                const table = document.getElementById("ordersTable");
+                table.innerHTML = "";
+
+                if (data.length === 0) {
+
+                    table.innerHTML = `<tr><td colspan="4">No orders found</td></tr>`;
+                    return;
+
+                }
+
+                data.forEach(order => {
+
+                    table.innerHTML += `
+<tr>
+<td>${order.id}</td>
+<td>${order.product}</td>
+<td>
+<span id="status-${order.id}" class="status ${order.status.toLowerCase()}">
+${order.status}
+</span>
+</td>
+<td>${order.created_at}</td>
+</tr>
+`;
+
+
+
+                    /* WebSocket connection for this order */
+
+                    const socket = new WebSocket(
+                        "ws://127.0.0.1:8000/ws/orders/" + order.id + "/"
+                    );
+
+
+                    socket.onopen = function () {
+                        console.log("WebSocket connected for order", order.id);
+                    };
+
+
+                    socket.onmessage = function (event) {
+
+                        const data = JSON.parse(event.data);
+
+                        console.log("Update received", data);
+
+                        const statusElement = document.getElementById("status-" + data.order_id);
+
+                        if (statusElement) {
+                            statusElement.innerText = data.status;
+                        }
+
+                    };
+
+
+                    socket.onclose = function () {
+                        console.log("WebSocket disconnected");
+                    };
+
+                });
+
+            })
+            .catch(err => {
+                console.log(err);
+            });
+
+
+
+        function logout() {
+
+            localStorage.removeItem("access");
+
+            window.location.href = "/api/auth/login-page/";
+
+        }
+
+    </script>
+
+</body>
+
+
+</html>

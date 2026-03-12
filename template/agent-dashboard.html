@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Agent Dashboard</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6fb;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            padding: 40px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f2f2f2;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .created {
+            background: #ffe08a
+        }
+
+        .packed {
+            background: #ffd280
+        }
+
+        .shipped {
+            background: #9be7a3
+        }
+
+        .out_for_delivery {
+            background: #87cefa
+        }
+
+        .delivered {
+            background: #b2ffb2
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            background: #fff;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <header>
+        <h1>Delivery Agent Dashboard</h1>
+
+        <nav>
+            <a href="#">My Orders</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </nav>
+    </header>
+
+    <div class="container">
+
+        <h2>Assigned Orders</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody id="ordersTable">
+
+                <tr>
+                    <td colspan="4">Loading orders...</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <footer>
+        © 2026 Delivery System
+    </footer>
+
+    <script>
+
+        const token = localStorage.getItem("access");
+
+        if (!token) {
+            window.location.href = "/api/auth/login-page/";
+        }
+
+        fetch("/api/auth/agent-orders/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+
+                const table = document.getElementById("ordersTable");
+                table.innerHTML = "";
+
+                if (data.length === 0) {
+                    table.innerHTML = `<tr><td colspan="4">No orders assigned</td></tr>`;
+                    return;
+                }
+
+                data.forEach(order => {
+
+                    table.innerHTML += `
+<tr>
+<td>${order.order_id}</td>
+<td>${order.customer}</td>
+<td>${order.product}</td>
+<td>
+
+<select id="status-${order.order_id}">
+
+<option value="CREATED" ${order.status === "CREATED" ? "selected" : ""}>CREATED</option>
+<option value="PACKED" ${order.status === "PACKED" ? "selected" : ""}>PACKED</option>
+<option value="SHIPPED" ${order.status === "SHIPPED" ? "selected" : ""}>SHIPPED</option>
+<option value="OUT_FOR_DELIVERY" ${order.status === "OUT_FOR_DELIVERY" ? "selected" : ""}>OUT_FOR_DELIVERY</option>
+<option value="DELIVERED" ${order.status === "DELIVERED" ? "selected" : ""}>DELIVERED</option>
+
+</select>
+
+<button onclick="updateStatus(${order.order_id})">
+Update
+</button>
+
+</td>
+</tr>
+`;
+
+                });
+
+            })
+            .catch(err => {
+                console.log(err);
+            });
+        function updateStatus(orderId) {
+
+            const status = document.getElementById("status-" + orderId).value;
+
+            fetch("/orders/update-status/" + orderId + "/", {
+
+                method: "PATCH",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+
+                body: JSON.stringify({
+                    status: status
+                })
+
+            })
+                .then(res => res.json())
+                .then(data => {
+
+                    alert("Status updated to " + status);
+
+                })
+                .catch(err => {
+                    console.log(err);
+                });
+
+        }
+
+        function logout() {
+            localStorage.removeItem("access");
+            localStorage.removeItem("refresh");
+            window.location.href = "/api/auth/login-page/";
+        }
+
+    </script>
+
+</body>
+
+</html>

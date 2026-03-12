@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Register</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        form {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 320px;
+            animation: slideUp .6s ease;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+            transition: all .3s ease;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #4facfe;
+            box-shadow: 0 0 5px rgba(79, 172, 254, .6);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: scale(.98);
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 10px;
+            color: #333;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: #4facfe;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <form id="registerForm">
+
+        <h2>Register</h2>
+
+        <label>Username</label><br>
+        <input type="text" id="username"><br><br>
+
+        <label>Password</label><br>
+        <input type="password" id="password"><br><br>
+
+        <label>Role</label><br>
+        <select id="role">
+            <option value="CUSTOMER">Customer</option>
+            <option value="AGENT">Agent</option>
+            <option value="ADMIN">Admin</option>
+        </select>
+
+        <br><br>
+
+        <button type="submit">Register</button>
+
+        <p id="message"></p>
+
+        <div class="login-link">
+            Already have an account? <a href="/api/auth/login/">Login</a>
+        </div>
+
+    </form>
+
+    <script>
+
+        document.getElementById("registerForm").addEventListener("submit", function (e) {
+
+            e.preventDefault();
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const role = document.getElementById("role").value;
+
+            fetch("/api/auth/register/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    role: role
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("message").innerText = data.message;
+                });
+
+        });
+
+    </script>
+
+</body>
+
+</html>
