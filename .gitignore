@@ -5,7 +5,7 @@ __pycache__/
 
 # database
 *.db
-users.db
+db.sqlite3
 
 # uploads
 app/uploads/
