@@ -184,5 +184,6 @@ def agent_dashboard(request):
 
 
 def logout_view(request):
+    print("logout")
     logout(request)
     return redirect("/api/auth/login-page/")
