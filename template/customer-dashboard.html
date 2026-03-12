@@ -242,6 +242,7 @@
         function createOrder(productId) {
 
             const token = localStorage.getItem("access");
+            console.log(token)
 
             fetch("/orders/create-order/" + productId + "/", {
                 method: "POST",
