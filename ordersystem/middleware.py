@@ -3,8 +3,17 @@ from channels.middleware import BaseMiddleware
 from django.contrib.auth.models import AnonymousUser
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth import get_user_model
+from channels.db import database_sync_to_async
 
 User = get_user_model()
+
+
+@database_sync_to_async
+def get_user(user_id):
+    try:
+        return User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return AnonymousUser()
 
 
 class JWTAuthMiddleware(BaseMiddleware):
@@ -19,7 +28,7 @@ class JWTAuthMiddleware(BaseMiddleware):
         if token:
             try:
                 access_token = AccessToken(token[0])
-                user = User.objects.get(id=access_token["user_id"])
+                user = await get_user(access_token["user_id"])
                 scope["user"] = user
             except Exception:
                 scope["user"] = AnonymousUser()

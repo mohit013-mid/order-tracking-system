@@ -128,7 +128,6 @@
     <header>
         <h1>Customer Dashboard</h1>
         <nav>
-            <a href="#">Home</a>
             <a href="/api/auth/customerorder">Orders</a>
             <a href="#">Profile</a>
             <a href="#" onclick="logout()">Logout</a>
@@ -170,44 +169,46 @@
     </footer>
     <script>
 
-        function createOrder(productId) {
+        // function createOrder(productId) {
 
-            const token = localStorage.getItem("access");
+        //     const token = localStorage.getItem("access");
 
-            fetch("/orders/create-order/" + productId + "/", {
-                method: "POST",
-                headers: {
-                    "Authorization": "Bearer " + token
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
+        //     fetch("/orders/create-order/" + productId + "/", {
+        //         method: "POST",
+        //         headers: {
+        //             "Authorization": "Bearer " + token
+        //         }
+        //     })
+        //         .then(response => response.json())
+        //         .then(data => {
 
-                    console.log(data);
+        //             console.log(data);
 
-                    const orderId = data.order_id;
+        //             const orderId = data.order_id;
 
-                    startWebSocket(orderId);
+        //             startWebSocket(orderId);
 
-                });
-        }
-        const orderId = 5;
+        //         });
+        //     window.location.href = "/api/auth/customerorder/"
 
-        const socket = new WebSocket(
-            "ws://127.0.0.1:8000/ws/orders/" + orderId + "/"
-        );
-        // const socket = new WebSocket(
-        //     "ws://127.0.0.1:8000/ws/orders/" + orderId + "/?token=" + token
-        // );
+        // }
+        // // const orderId = 5;
 
-        socket.onmessage = function (event) {
+        // // const socket = new WebSocket(
+        // //     "ws://127.0.0.1:8000/ws/orders/" + orderId + "/"
+        // // );
+        // // // const socket = new WebSocket(
+        // // //     "ws://127.0.0.1:8000/ws/orders/" + orderId + "/?token=" + token
+        // // // );
 
-            const data = JSON.parse(event.data);
+        // // socket.onmessage = function (event) {
 
-            alert("Order status updated to " + data.status);
+        // //     const data = JSON.parse(event.data);
 
-        };
-        // const orderId = 5;
+        // //     alert("Order status updated to " + data.status);
+
+        // // };
+        // // const orderId = 5;
 
         // const token = localStorage.getItem("access");
 
@@ -230,6 +231,68 @@
         // socket.onclose = function () {
         //     console.log("WebSocket disconnected");
         // };
+        // function logout() {
+
+        //     localStorage.removeItem("access");
+        //     window.location.href = "/api/auth/logout/"
+
+        //     // window.location.href = "/api/auth/login-page/";
+
+        // }
+        function createOrder(productId) {
+
+            const token = localStorage.getItem("access");
+
+            fetch("/orders/create-order/" + productId + "/", {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+
+                    console.log(data);
+
+                    const orderId = data.order_id;
+
+                    // start websocket for this order
+                    startWebSocket(orderId);
+
+                    // redirect to orders page
+                    window.location.href = "/api/auth/customerorder/";
+
+                });
+
+        }
+
+
+        function startWebSocket(orderId) {
+
+            const token = localStorage.getItem("access");
+
+            const socket = new WebSocket(
+                "ws://127.0.0.1:8000/ws/orders/" + orderId + "/?token=" + token
+            );
+
+            socket.onopen = function () {
+                console.log("WebSocket connected for order", orderId);
+            };
+
+            socket.onmessage = function (event) {
+
+                const data = JSON.parse(event.data);
+
+                alert("Order status updated to " + data.status);
+
+            };
+
+            socket.onclose = function () {
+                console.log("WebSocket disconnected");
+            };
+
+        }
+
         function logout() {
 
             localStorage.removeItem("access");

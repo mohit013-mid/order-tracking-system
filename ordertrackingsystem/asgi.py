@@ -9,19 +9,45 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 
 import os
 
-from channels.routing import ProtocolTypeRouter, URLRouter
+# from channels.routing import ProtocolTypeRouter, URLRouter
+# from django.core.asgi import get_asgi_application
+
+# from ordersystem.routing import websocket_urlpatterns
+
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ordertrackingsystem.settings')
+
+# django_asgi_app = get_asgi_application()
+
+# application = ProtocolTypeRouter({
+#     "http": django_asgi_app,
+#     "websocket": URLRouter(
+#         websocket_urlpatterns
+#     ),
+# })
+import os
+
+os.environ.setdefault(
+    "DJANGO_SETTINGS_MODULE",
+    "ordertrackingsystem.settings"
+)
+
 from django.core.asgi import get_asgi_application
-
-from ordersystem.routing import websocket_urlpatterns
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ordertrackingsystem.settings')
 
 django_asgi_app = get_asgi_application()
 
-application = ProtocolTypeRouter({
-    "http": django_asgi_app,
-    "websocket": URLRouter(
-        websocket_urlpatterns
-    ),
-})
 
+from channels.routing import ProtocolTypeRouter, URLRouter
+from ordersystem.middleware import JWTAuthMiddleware
+import ordersystem.routing
+
+
+application = ProtocolTypeRouter({
+    
+    "http": django_asgi_app,
+
+    "websocket": JWTAuthMiddleware(
+        URLRouter(
+            ordersystem.routing.websocket_urlpatterns
+        )
+    )
+})

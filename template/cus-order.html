@@ -183,15 +183,49 @@ ${order.status}
 
                     /* WebSocket connection for this order */
 
-                    const socket = new WebSocket(
-                        "ws://127.0.0.1:8000/ws/orders/" + order.id + "/"
-                    );
+                    // const socket = new WebSocket(
+                    //     "ws://127.0.0.1:8000/ws/orders/" + order.id + "/"
+                    // );
+                    // const token = localStorage.getItem("access");
 
+                    // const socket = new WebSocket(
+                    //     "ws://127.0.0.1:8000/ws/orders/" + orderId + "/?token=" + token
+                    // );
+
+
+
+                    // socket.onopen = function () {
+                    //     console.log("WebSocket connected for order", order.id);
+                    // };
+
+
+                    // socket.onmessage = function (event) {
+
+                    //     const data = JSON.parse(event.data);
+
+                    //     console.log("Update received", data);
+
+                    //     const statusElement = document.getElementById("status-" + data.order_id);
+
+                    //     if (statusElement) {
+                    //         statusElement.innerText = data.status;
+                    //     }
+
+                    // };
+
+
+                    // socket.onclose = function () {
+                    //     console.log("WebSocket disconnected");
+                    // };
+                    const token = localStorage.getItem("access");
+
+                    const socket = new WebSocket(
+                        "ws://127.0.0.1:8000/ws/orders/" + order.id + "/?token=" + token
+                    );
 
                     socket.onopen = function () {
                         console.log("WebSocket connected for order", order.id);
                     };
-
 
                     socket.onmessage = function (event) {
 
@@ -206,7 +240,6 @@ ${order.status}
                         }
 
                     };
-
 
                     socket.onclose = function () {
                         console.log("WebSocket disconnected");
