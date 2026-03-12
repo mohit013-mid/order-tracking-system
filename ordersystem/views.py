@@ -18,6 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 def create_order(request, product_id):
 
     product = Product.objects.get(id=product_id)
+    print('product page')
 
     order = Order.objects.create(
         customer=request.user,
