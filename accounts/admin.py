@@ -2,5 +2,9 @@ from django.contrib import admin
 
 from accounts.models import Profile , Product
 
-admin.site.register(Profile)
+class profileadmin(admin.ModelAdmin):
+    list_display=('role','user')
+
+
+admin.site.register(Profile,profileadmin)
 admin.site.register(Product)

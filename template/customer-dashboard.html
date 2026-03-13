@@ -258,7 +258,7 @@
                     const orderId = data.order_id;
 
                     // start websocket for this order
-                    startWebSocket(orderId);
+                    // startWebSocket(orderId);
 
                     // redirect to orders page
                     window.location.href = "/api/auth/customerorder/";
@@ -268,31 +268,31 @@
         }
 
 
-        function startWebSocket(orderId) {
+        // function startWebSocket(orderId) {
 
-            const token = localStorage.getItem("access");
+        //     const token = localStorage.getItem("access");
 
-            const socket = new WebSocket(
-                "ws://127.0.0.1:8000/ws/orders/" + orderId + "/?token=" + token
-            );
+        //     const socket = new WebSocket(
+        //         "ws://127.0.0.1:8000/ws/orders/" + orderId + "/?token=" + token
+        //     );
 
-            socket.onopen = function () {
-                console.log("WebSocket connected for order", orderId);
-            };
+        //     socket.onopen = function () {
+        //         console.log("WebSocket connected 7877878 for order", orderId);
+        //     };
 
-            socket.onmessage = function (event) {
+        //     socket.onmessage = function (event) {
 
-                const data = JSON.parse(event.data);
+        //         const data = JSON.parse(event.data);
 
-                alert("Order status updated to " + data.status);
+        //         alert("Order status updated to " + data.status);
 
-            };
+        //     };
 
-            socket.onclose = function () {
-                console.log("WebSocket disconnected");
-            };
+        //     socket.onclose = function () {
+        //         console.log("WebSocket disconnected");
+        //     };
 
-        }
+        // }
 
         function logout() {
 

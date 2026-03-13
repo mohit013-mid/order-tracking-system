@@ -224,7 +224,7 @@ ${order.status}
                     );
 
                     socket.onopen = function () {
-                        console.log("WebSocket connected for order", order.id);
+                        console.log("WebSocket order page connected for order", order.id);
                     };
 
                     socket.onmessage = function (event) {

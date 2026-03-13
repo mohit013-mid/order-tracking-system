@@ -33,6 +33,7 @@ def create_order(request, product_id):
 
 
 @api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
 def update_status(request, order_id):
 
     status = request.data.get("status")
