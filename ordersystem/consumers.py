@@ -41,6 +41,7 @@ class OrderConsumer(AsyncWebsocketConsumer):
     async def connect(self):
 
         user = self.scope["user"]
+        print(" websocket userr-------------------------------------")
 
         # Reject connection if user not authenticated
         if user.is_anonymous:
