@@ -59,8 +59,10 @@ class LoginView(APIView):
         # create Django session
         login(request, user)
 
-        # create JWT
+        # create JWT tokens
         refresh = RefreshToken.for_user(user)
+        #print("refresh token", str(refresh))
+        #print("access token", str(refresh.access_token))
 
         return Response({
             "access": str(refresh.access_token),
