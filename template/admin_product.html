@@ -569,7 +569,7 @@
             const token = localStorage.getItem('access');
 
             try {
-                const res = await fetch('/api/auth/admin_product/', {
+                const res = await fetch('/api/auth/admin_product_listing/', {
                     method: 'POST',
                     headers: { 'Authorization': 'Bearer ' + token },
                     body: formData
