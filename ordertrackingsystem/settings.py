@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     "channels",
     "rest_framework",
     "ordersystem",
-    "accounts",]
+    "accounts",
+    "notification",]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

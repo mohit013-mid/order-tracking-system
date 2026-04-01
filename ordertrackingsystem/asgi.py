@@ -39,6 +39,7 @@ django_asgi_app = get_asgi_application()
 from channels.routing import ProtocolTypeRouter, URLRouter
 from ordersystem.middleware import JWTAuthMiddleware
 import ordersystem.routing
+import notification.routing
 
 
 application = ProtocolTypeRouter({
@@ -47,7 +48,8 @@ application = ProtocolTypeRouter({
 
     "websocket": JWTAuthMiddleware(
         URLRouter(
-            ordersystem.routing.websocket_urlpatterns
+            ordersystem.routing.websocket_urlpatterns+
+            notification.routing.websocket_urlpatterns
         )
     )
 })

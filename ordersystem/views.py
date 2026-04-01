@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.http import JsonResponse
-
+from notification.services import notify_admins, notify_user
 from django.views.decorators.csrf import csrf_exempt
 
 @api_view(['POST'])
@@ -19,12 +19,20 @@ def create_order(request, product_id):
 
     product = Product.objects.get(id=product_id)
     print('product page')
-
+    user= request.user
+    print("request user", request.user)
     order = Order.objects.create(
         customer=request.user,
         product=product,
         status="CREATED"
     )
+    # 🔔 SEND EVENTS HERE
+
+        # 👑 Notify admins
+        # notify_admins(f"New user registered: {username}")
+
+        # 👤 Notify user (optional)
+    notify_user(user, "Welcome! Your order has been placed .")
 
     return Response({
         "order_id": order.id,

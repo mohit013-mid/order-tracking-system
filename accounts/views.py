@@ -13,7 +13,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.decorators import login_required
 from rest_framework.permissions import AllowAny
-
+from notification.services import notify_admins , notify_user
 
 
 class registerView(APIView):
@@ -33,6 +33,15 @@ class registerView(APIView):
             user=user,
             role=role
         )
+
+
+        # 🔔 SEND EVENTS HERE
+
+        # 👑 Notify admins
+        notify_admins(f"New user registered: {username}")
+
+        # 👤 Notify user (optional)
+        notify_user(user, "Welcome! Your account has been created.")
 
         return Response({
             "message": "User created"
@@ -90,7 +99,18 @@ def assign_agent(request):
         order=order,
         defaults={"agent": agent}
     )
+    print("assign user is", request.user)
+    print("order is ", order_id)
+    print("agent is ", agent)
+    print("agent is ", agent.id)
+    # 🔔 SEND EVENTS HERE
 
+    # 👑 Notify admins
+    notify_admins(f"you have succesfully assign order with order id  {order_id} to {agent}")
+
+    # # 👤 Notify user (optional)
+    notify_user(agent, f"Welcome! Your have recieved new order {order.id}.")
+    
     return Response({
         "message": "Agent assigned successfully",
         "order_id": order.id,
