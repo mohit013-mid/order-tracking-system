@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface2: #1a1a26;
+            --border: rgba(255, 255, 255, 0.07);
+            --accent: #7c6aff;
+            --accent2: #ff6ab0;
+            --accent3: #6affcf;
+            --danger: #ff6a6a;
+            --text: #f0f0f8;
+            --muted: #6b6b8a;
+            --card-bg: rgba(22, 22, 36, 0.85);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Grid bg ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(124, 106, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(124, 106, 255, 0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+            animation: gridShift 25s linear infinite;
+        }
+
+        @keyframes gridShift {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(60px);
+            }
+        }
+
+        /* ── Blobs ── */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(130px);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.28;
+            animation: blobFloat 18s ease-in-out infinite alternate;
+        }
+
+        .blob-1 {
+            width: 420px;
+            height: 420px;
+            background: var(--accent);
+            top: -120px;
+            left: -80px;
+        }
+
+        .blob-2 {
+            width: 340px;
+            height: 340px;
+            background: var(--danger);
+            bottom: -80px;
+            right: -60px;
+            animation-delay: -9s;
+        }
+
+        @keyframes blobFloat {
+            from {
+                transform: translate(0, 0) scale(1);
+            }
+
+            to {
+                transform: translate(30px, 25px) scale(1.07);
+            }
+        }
+
+        /* ── HEADER ── */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 48px;
+            height: 68px;
+            background: rgba(10, 10, 15, 0.75);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            animation: slideDown 0.5s ease both;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Syne', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 0 20px rgba(124, 106, 255, 0.45);
+        }
+
+        .back-btn {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            color: var(--text);
+            border-color: rgba(124, 106, 255, 0.35);
+            background: rgba(124, 106, 255, 0.08);
+        }
+
+        /* ── PAGE WRAPPER ── */
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 52px 24px 80px;
+            animation: fadeUp 0.6s 0.15s ease both;
+        }
+
+        @keyframes fadeUp {
+            from {
+                transform: translateY(24px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 36px;
+        }
+
+        .page-title-group {}
+
+        .page-eyebrow {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .unread-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 106, 106, 0.12);
+            border: 1px solid rgba(255, 106, 106, 0.3);
+            color: var(--danger);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-top: 12px;
+        }
+
+        .unread-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: pulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.4;
+                transform: scale(0.7);
+            }
+        }
+
+        .mark-all-btn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent3);
+            background: rgba(106, 255, 207, 0.08);
+            border: 1px solid rgba(106, 255, 207, 0.2);
+            padding: 10px 18px;
+            border-radius: 10px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .mark-all-btn:hover {
+            background: rgba(106, 255, 207, 0.15);
+            border-color: rgba(106, 255, 207, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* ── NOTIFICATION CARDS ── */
+        .notif-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .notif-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 22px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            transition: transform 0.25s ease, border-color 0.25s, box-shadow 0.25s;
+            animation: cardIn 0.5s ease both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notif-card:nth-child(1) {
+            animation-delay: 0.3s;
+        }
+
+        .notif-card:nth-child(2) {
+            animation-delay: 0.38s;
+        }
+
+        .notif-card:nth-child(3) {
+            animation-delay: 0.46s;
+        }
+
+        .notif-card:nth-child(4) {
+            animation-delay: 0.54s;
+        }
+
+        .notif-card:nth-child(5) {
+            animation-delay: 0.62s;
+        }
+
+        .notif-card:nth-child(6) {
+            animation-delay: 0.70s;
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .notif-card:hover {
+            transform: translateX(4px);
+            border-color: rgba(124, 106, 255, 0.3);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Unread glow strip */
+        .notif-card.unread {
+            border-color: rgba(255, 106, 106, 0.25);
+            background: rgba(255, 106, 106, 0.04);
+        }
+
+        .notif-card.unread::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--danger), var(--accent2));
+            border-radius: 3px 0 0 3px;
+        }
+
+        .notif-card.unread:hover {
+            border-color: rgba(255, 106, 106, 0.45);
+        }
+
+        /* ── ICON ── */
+        .notif-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .notif-icon.read {
+            background: rgba(124, 106, 255, 0.12);
+        }
+
+        .notif-icon.unread {
+            background: rgba(255, 106, 106, 0.12);
+            animation: iconPulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 106, 106, 0);
+            }
+
+            50% {
+                box-shadow: 0 0 0 6px rgba(255, 106, 106, 0.12);
+            }
+        }
+
+        /* ── CONTENT ── */
+        .notif-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notif-message {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.55;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .notif-card.unread .notif-message {
+            font-weight: 600;
+        }
+
+        .notif-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .notif-time {
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .mark-read-btn {
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent3);
+            background: rgba(106, 255, 207, 0.08);
+            border: 1px solid rgba(106, 255, 207, 0.2);
+            padding: 5px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .mark-read-btn:hover {
+            background: rgba(106, 255, 207, 0.18);
+            border-color: rgba(106, 255, 207, 0.45);
+        }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            animation: fadeUp 0.5s 0.3s ease both;
+        }
+
+        .empty-icon {
+            font-size: 56px;
+            margin-bottom: 20px;
+            display: block;
+            opacity: 0.5;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .empty-state h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(124, 106, 255, 0.4);
+            border-radius: 3px;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 600px) {
+            header {
+                padding: 0 20px;
+            }
+
+            .page {
+                padding: 36px 16px 60px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <!-- HEADER -->
+    <header>
+        <a href="/" class="logo">
+            <div class="logo-icon">⚡</div>
+            Customer Portal
+        </a>
+        <a href="javascript:history.back()" class="back-btn">← Back</a>
+    </header>
+
+    <div class="page">
+
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+            <div class="page-title-group">
+                <div class="page-eyebrow">✦ Inbox</div>
+                <h1 class="page-title">Notifications</h1>
+                <div class="unread-badge">
+                    <span class="unread-dot"></span>
+                    Unread updates
+                </div>
+            </div>
+            <a href="?mark_all=true" class="mark-all-btn">✓ Mark All Read</a>
+        </div>
+
+        <!-- NOTIFICATION LIST -->
+        <div class="notif-list">
+
+            {% for notif in notifications %}
+            <div class="notif-card {% if not notif.is_read %}unread{% endif %}">
+
+                <div class="notif-icon {% if notif.is_read %}read{% else %}unread{% endif %}">
+                    {% if notif.is_read %}🔔{% else %}🚨{% endif %}
+                </div>
+
+                <div class="notif-content">
+                    <p class="notif-message">{{ notif.message }}</p>
+                    <div class="notif-meta">
+                        <span class="notif-time">🕐 {{ notif.created_at }}</span>
+                        {% if not notif.is_read %}
+                        <a href="{% url 'mark_as_read' notif.id %}" class="mark-read-btn">Mark as Read →</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+            {% empty %}
+
+            <div class="empty-state">
+                <span class="empty-icon">🔕</span>
+                <h3>All caught up!</h3>
+                <p>You have no notifications right now.<br>We'll let you know when something happens.</p>
+            </div>
+
+            {% endfor %}
+
+        </div>
+    </div>
+
+</body>
+
+</html>
