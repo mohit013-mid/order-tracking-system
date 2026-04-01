@@ -184,6 +184,73 @@ def admin_dashboard(request):
         "agents": agents
     }) 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.parsers import MultiPartParser, FormParser
+from .models import Product
+from .serializers import ProductSerializer
+
+
+class AdminProductView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]  # required for image upload
+
+    def get(self, request):
+        """List all products"""
+        products = Product.objects.all().order_by("-created_at")
+        serializer = ProductSerializer(products, many=True, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """Add a new product"""
+
+        # Only admins can add products
+        if request.user.profile.role != "ADMIN":
+            return Response(
+                {"error": "Permission denied."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = ProductSerializer(data=request.data, context={"request": request})
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "Product added successfully.", "product": serializer.data},
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            {"error": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    def delete(self, request, product_id):
+        """Delete a product"""
+
+        if request.user.profile.role != "ADMIN":
+            return Response(
+                {"error": "Permission denied."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            product = Product.objects.get(id=product_id)
+            product.delete()
+            return Response(
+                {"message": "Product deleted successfully."},
+                status=status.HTTP_200_OK
+            )
+        except Product.DoesNotExist:
+            return Response(
+                {"error": "Product not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
 @login_required(login_url="/login-page/")
 def customer_dashboard(request):
     products = Product.objects.all()
@@ -192,13 +259,14 @@ def customer_dashboard(request):
     })  
 
 
+
 def customer_order(request):
     return render(request, "cus-order.html")
 
 
 def admin_products(request):
     products = Product.objects.all()
-    return render(request, "admin_product.html",{"products":products})
+    return render(request, "admin_product.html" ,{"products": products })
 
 
 def agent_dashboard(request):
