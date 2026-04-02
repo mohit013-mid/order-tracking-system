@@ -15,6 +15,7 @@ urlpatterns = [
     path("login-page/", login_page, name="login_page"),
     path("register-page/", register_page, name="register_page"),
     path("admin-dashboard/", admin_dashboard, name="admin_dashboard"),
+    # path("api/auth/admin-dashboard/", admin_dashboard_api),
     path("customer-dashboard/", customer_dashboard, name="customer_dashboard"),
     path("agent-dashboard/", agent_dashboard, name="agent_dashboard"),
     path("assign-agent/", assign_agent, name="assign_agent"),

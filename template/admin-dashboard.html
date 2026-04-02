@@ -420,6 +420,65 @@
     </div>
 
     <script>
+        (async function checkAuth() {
+            const access = localStorage.getItem("access");
+
+            if (!access) {
+                redirectToLogin();
+                return;
+            }
+
+            try {
+                const payload = JSON.parse(atob(access.split('.')[1]));
+                const isExpired = payload.exp * 1000 < Date.now();
+
+                if (isExpired) {
+                    // ✅ Access expired — try refresh
+                    const refreshed = await tryRefreshToken();
+                    if (!refreshed) return; // redirectToLogin already called inside
+                }
+
+            } catch {
+                redirectToLogin();
+            }
+        })();
+
+        async function tryRefreshToken() {
+            const refresh = localStorage.getItem("refresh");
+
+            if (!refresh) {
+                redirectToLogin();
+                return false;
+            }
+
+            try {
+                const res = await fetch("/api/auth/token/refresh/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ refresh })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem("access", data.access);
+                    return true;
+                }
+
+                // ✅ 401 = refresh token expired
+                redirectToLogin();
+                return false;
+
+            } catch {
+                redirectToLogin();
+                return false;
+            }
+        }
+
+        function redirectToLogin() {
+            localStorage.removeItem("access");
+            localStorage.removeItem("refresh");
+            window.location.href = "/api/auth/login-page/?reason=session_expired";
+        }
         // Compute stats from DOM
         (function() {
             const rows = document.querySelectorAll('tbody tr');
