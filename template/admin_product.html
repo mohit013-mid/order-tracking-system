@@ -31,7 +31,6 @@
             overflow-x: hidden;
         }
 
-        /* ── Grid ── */
         body::before {
             content: '';
             position: fixed; inset: 0;
@@ -44,14 +43,12 @@
         }
         @keyframes gridShift { from { transform: translateY(0); } to { transform: translateY(60px); } }
 
-        /* ── Blobs ── */
         .blob { position: fixed; border-radius: 50%; filter: blur(130px); pointer-events: none; z-index: 0; animation: blobFloat 18s ease-in-out infinite alternate; }
         .blob-1 { width: 500px; height: 500px; background: var(--accent);  opacity: 0.25; top: -160px; left: -100px; }
         .blob-2 { width: 380px; height: 380px; background: var(--accent2); opacity: 0.2;  bottom: -100px; right: -80px; animation-delay: -9s; }
         .blob-3 { width: 280px; height: 280px; background: var(--accent3); opacity: 0.14; top: 40%; left: 60%; animation-delay: -15s; }
         @keyframes blobFloat { from { transform: translate(0,0) scale(1); } to { transform: translate(30px,25px) scale(1.08); } }
 
-        /* ── HEADER ── */
         header {
             position: sticky; top: 0; z-index: 100;
             display: flex; justify-content: space-between; align-items: center;
@@ -91,13 +88,12 @@
         }
         nav a:hover { color: var(--text); border-color: var(--border); background: rgba(255,255,255,0.04); }
         .nav-active { color: var(--accent) !important; border-color: rgba(124,106,255,0.25) !important; background: rgba(124,106,255,0.08) !important; }
+        .nav-products { color: var(--accent2) !important; border-color: rgba(255,106,176,0.25) !important; background: rgba(255,106,176,0.08) !important; }
         .nav-logout { background: rgba(255,106,106,0.1) !important; border-color: rgba(255,106,106,0.2) !important; color: #ff6a6a !important; }
         .nav-logout:hover { background: rgba(255,106,106,0.2) !important; border-color: rgba(255,106,106,0.4) !important; }
 
-        /* ── PAGE ── */
         .page { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 52px 24px 80px; }
 
-        /* ── HERO ── */
         .hero { margin-bottom: 36px; animation: fadeUp 0.6s 0.15s ease both; }
         @keyframes fadeUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .hero-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--accent2); margin-bottom: 8px; }
@@ -105,7 +101,6 @@
         .hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(26px,4vw,38px); font-weight: 800; letter-spacing: -1px; margin-bottom: 6px; }
         .hero p { color: var(--muted); font-size: 14px; }
 
-        /* ── ADD PRODUCT BTN ── */
         .add-btn {
             display: flex; align-items: center; gap: 8px;
             padding: 12px 22px;
@@ -124,7 +119,6 @@
         .add-btn:active { transform: scale(0.98); }
         .add-btn-icon { font-size: 18px; font-weight: 400; line-height: 1; }
 
-        /* ── STATS ── */
         .stats { display: flex; gap: 16px; margin-bottom: 36px; flex-wrap: wrap; animation: fadeUp 0.6s 0.25s ease both; }
         .stat-pill {
             background: var(--card-bg); border: 1px solid var(--border);
@@ -136,7 +130,6 @@
         .stat-pill-value { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; }
         .purple { color: var(--accent); } .pink { color: var(--accent2); } .teal { color: var(--accent3); }
 
-        /* ── PRODUCT GRID ── */
         .products {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -144,22 +137,25 @@
             animation: fadeUp 0.6s 0.35s ease both;
         }
 
-        /* ── PRODUCT CARD ── */
+        /* Skeleton cards */
+        .skeleton-card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 18px; overflow: hidden;
+        }
+        .skeleton-img { height: 180px; background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        .skeleton-body { padding: 18px 20px; }
+        .skeleton-line { height: 14px; border-radius: 4px; margin-bottom: 10px; background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
         .product-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 18px; overflow: hidden;
             backdrop-filter: blur(12px);
             transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), border-color 0.3s, box-shadow 0.3s;
-            animation: cardReveal 0.6s ease both;
+            animation: cardReveal 0.5s ease both;
             position: relative;
         }
-        .product-card:nth-child(1) { animation-delay: 0.4s; }
-        .product-card:nth-child(2) { animation-delay: 0.5s; }
-        .product-card:nth-child(3) { animation-delay: 0.6s; }
-        .product-card:nth-child(4) { animation-delay: 0.7s; }
-        .product-card:nth-child(5) { animation-delay: 0.8s; }
-        .product-card:nth-child(6) { animation-delay: 0.9s; }
         @keyframes cardReveal { from { opacity:0; transform:translateY(30px) scale(0.96); } to { opacity:1; transform:translateY(0) scale(1); } }
         .product-card:hover { transform: translateY(-8px) scale(1.01); border-color: rgba(124,106,255,0.4); box-shadow: 0 0 40px rgba(124,106,255,0.18), 0 20px 50px rgba(0,0,0,0.5); }
 
@@ -168,7 +164,14 @@
         .product-card:hover .card-image-wrap img { transform: scale(1.06); }
         .card-image-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(10,10,15,0.8)); }
 
-        /* Admin actions overlay */
+        /* no image fallback */
+        .card-image-placeholder {
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(124,106,255,0.15), rgba(255,106,176,0.1));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 48px; opacity: 0.5;
+        }
+
         .card-actions {
             position: absolute; top: 10px; right: 10px;
             display: flex; gap: 6px;
@@ -181,7 +184,7 @@
             border-radius: 8px; border: none; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             font-size: 14px; backdrop-filter: blur(8px);
-            transition: transform 0.15s, opacity 0.15s;
+            transition: transform 0.15s;
         }
         .card-action-btn:hover { transform: scale(1.1); }
         .btn-edit   { background: rgba(124,106,255,0.75); color: white; }
@@ -198,70 +201,64 @@
         }
         .product-id { font-size: 11px; color: var(--muted); background: rgba(255,255,255,0.04); border: 1px solid var(--border); padding: 3px 10px; border-radius: 20px; }
 
-        /* ── EMPTY STATE ── */
         .empty-state { text-align: center; padding: 80px 20px; grid-column: 1/-1; }
         .empty-icon { font-size: 56px; display: block; margin-bottom: 18px; opacity: 0.4; animation: float 3s ease-in-out infinite; }
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
         .empty-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
         .empty-sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
 
-        /* ── MODAL BACKDROP ── */
-        .modal-backdrop {
-            position: fixed; inset: 0; z-index: 200;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            display: flex; align-items: center; justify-content: center;
-            padding: 24px;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.3s ease;
+        /* Error state */
+        .error-state { text-align: center; padding: 80px 20px; grid-column: 1/-1; }
+        .error-icon { font-size: 48px; margin-bottom: 14px; display: block; }
+        .error-state p { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+        .retry-btn {
+            padding: 9px 20px; border-radius: 10px;
+            background: rgba(124,106,255,0.12); border: 1px solid rgba(124,106,255,0.3);
+            color: var(--accent); font-family: 'DM Sans', sans-serif;
+            font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s;
         }
-        .modal-backdrop.open { opacity: 1; pointer-events: all; }
+        .retry-btn:hover { background: rgba(124,106,255,0.2); }
 
         /* ── MODAL ── */
+        .modal-backdrop {
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; padding: 24px;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-backdrop.open { opacity: 1; pointer-events: all; }
         .modal {
-            background: #13131e;
-            border: 1px solid rgba(124,106,255,0.2);
-            border-radius: 24px;
-            padding: 40px;
-            width: 100%; max-width: 500px;
-            max-height: 90vh; overflow-y: auto;
+            background: #13131e; border: 1px solid rgba(124,106,255,0.2);
+            border-radius: 24px; padding: 40px;
+            width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;
             position: relative;
             box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,106,255,0.1);
             transform: translateY(30px) scale(0.97);
             transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
         }
         .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
-
-        /* Top shine */
         .modal::before {
-            content: '';
-            position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
+            content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
             background: linear-gradient(90deg, transparent, rgba(124,106,255,0.6), transparent);
         }
-
         .modal-close {
             position: absolute; top: 16px; right: 16px;
             width: 32px; height: 32px; border-radius: 8px;
             border: 1px solid var(--border); background: rgba(255,255,255,0.04);
             color: var(--muted); font-size: 16px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
         }
         .modal-close:hover { color: var(--text); border-color: rgba(255,106,106,0.4); background: rgba(255,106,106,0.1); }
-
         .modal-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
         .modal-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 28px; }
 
-        /* ── FORM FIELDS ── */
         .field { margin-bottom: 20px; }
         .field label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
         .input-wrap { position: relative; }
         .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; opacity: 0.5; }
         .field input, .field textarea {
-            width: 100%;
-            padding: 12px 14px 12px 42px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid var(--border);
+            width: 100%; padding: 12px 14px 12px 42px;
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
             border-radius: 12px; color: var(--text);
             font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
             transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
@@ -269,18 +266,14 @@
         .field textarea { padding: 12px 14px; resize: vertical; min-height: 90px; }
         .field input::placeholder, .field textarea::placeholder { color: var(--muted); }
         .field input:focus, .field textarea:focus {
-            border-color: rgba(124,106,255,0.5);
-            background: rgba(124,106,255,0.06);
+            border-color: rgba(124,106,255,0.5); background: rgba(124,106,255,0.06);
             box-shadow: 0 0 0 3px rgba(124,106,255,0.12);
         }
 
-        /* File upload */
         .file-upload-wrap {
-            border: 2px dashed var(--border);
-            border-radius: 12px; padding: 24px;
+            border: 2px dashed var(--border); border-radius: 12px; padding: 24px;
             text-align: center; cursor: pointer;
-            transition: border-color 0.2s, background 0.2s;
-            position: relative;
+            transition: border-color 0.2s, background 0.2s; position: relative;
         }
         .file-upload-wrap:hover { border-color: rgba(124,106,255,0.4); background: rgba(124,106,255,0.04); }
         .file-upload-wrap.dragover { border-color: var(--accent); background: rgba(124,106,255,0.08); }
@@ -292,7 +285,6 @@
         .file-preview img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
         .file-name { font-size: 12px; color: var(--accent3); margin-top: 6px; }
 
-        /* Submit */
         .modal-submit {
             width: 100%; padding: 14px; margin-top: 8px;
             border: none; border-radius: 12px;
@@ -311,7 +303,6 @@
         .modal-submit.loading .btn-text { display: none; }
         .modal-submit.loading .btn-spinner { display: block; }
 
-        /* ── TOAST ── */
         .toast {
             position: fixed; bottom: 32px; right: 32px; z-index: 999;
             background: var(--surface2); border-radius: 12px; padding: 13px 18px;
@@ -328,14 +319,10 @@
         .toast.success .toast-icon { background: rgba(106,255,207,0.12); color: var(--accent3); }
         .toast.error   .toast-icon { background: rgba(255,106,106,0.12); color: var(--danger); }
 
-        /* ── FOOTER ── */
         footer {
-            position: relative; z-index: 1;
-            text-align: center; padding: 24px;
-            background: rgba(10,10,15,0.6);
-            border-top: 1px solid var(--border);
-            font-size: 13px; color: var(--muted);
-            backdrop-filter: blur(10px);
+            position: relative; z-index: 1; text-align: center; padding: 24px;
+            background: rgba(10,10,15,0.6); border-top: 1px solid var(--border);
+            font-size: 13px; color: var(--muted); backdrop-filter: blur(10px);
         }
         footer span { color: var(--accent); font-weight: 600; }
 
@@ -356,7 +343,6 @@
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
 
-    <!-- HEADER -->
     <header>
         <a href="/api/auth/admin-dashboard" class="logo">
             <div class="logo-icon">⚡</div>
@@ -369,16 +355,14 @@
             </div>
             <nav>
                 <a href="/api/auth/admin-dashboard" class="nav-active">📋 Orders</a>
-                <a href="#" class="nav-active" style="color:var(--accent2)!important;border-color:rgba(255,106,176,0.25)!important;background:rgba(255,106,176,0.08)!important;">🛍 Products</a>
+                <a href="#" class="nav-products">🛍 Products</a>
                 <a href="#" class="nav-logout" onclick="logout()">Sign Out</a>
             </nav>
         </div>
     </header>
 
-    <!-- PAGE -->
     <div class="page">
 
-        <!-- HERO -->
         <div class="hero">
             <div class="hero-eyebrow">✦ Admin Panel</div>
             <div class="hero-row">
@@ -386,22 +370,21 @@
                     <h1>Product Catalogue</h1>
                     <p>Manage all products available on the customer portal.</p>
                 </div>
-                <button class="add-btn" onclick="openModal()">
+                <button class="add-btn" onclick="openModal('add')">
                     <span class="add-btn-icon">＋</span>
                     Add Product
                 </button>
             </div>
         </div>
 
-        <!-- STATS -->
         <div class="stats">
             <div class="stat-pill">
                 <div class="stat-pill-label">Total Products</div>
-                <div class="stat-pill-value purple" id="stat-total">{{ products|length }}</div>
+                <div class="stat-pill-value purple" id="stat-total">—</div>
             </div>
             <div class="stat-pill">
                 <div class="stat-pill-label">In Stock</div>
-                <div class="stat-pill-value teal">{{ products|length }}</div>
+                <div class="stat-pill-value teal" id="stat-stock">—</div>
             </div>
             <div class="stat-pill">
                 <div class="stat-pill-label">Categories</div>
@@ -409,120 +392,313 @@
             </div>
         </div>
 
-        <!-- PRODUCTS GRID -->
+        <!-- PRODUCTS GRID — filled by JS -->
         <div class="products" id="productGrid">
-
-            {% for product in products %}
-            <div class="product-card">
-                <div class="card-image-wrap">
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
-                    <div class="card-image-overlay"></div>
-                    <!-- Admin action buttons -->
-                    <div class="card-actions">
-                        <button class="card-action-btn btn-edit" title="Edit" onclick="editProduct({{ product.id }})">✏️</button>
-                        <button class="card-action-btn btn-delete" title="Delete" onclick="deleteProduct({{ product.id }})">🗑</button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <h3>{{ product.name }}</h3>
-                    <p>{{ product.description }}</p>
-                    <div class="card-footer">
-                        <span class="price">₹{{ product.price }}</span>
-                        <span class="product-id">ID #{{ product.id }}</span>
-                    </div>
+            <!-- skeleton cards while loading -->
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line" style="width:70%"></div>
+                    <div class="skeleton-line" style="width:90%"></div>
+                    <div class="skeleton-line" style="width:40%"></div>
                 </div>
             </div>
-            {% empty %}
-            <div class="empty-state">
-                <span class="empty-icon">📦</span>
-                <div class="empty-title">No products yet</div>
-                <div class="empty-sub">Click "Add Product" to add your first product.</div>
-                <button class="add-btn" style="margin:0 auto;" onclick="openModal()">
-                    <span class="add-btn-icon">＋</span> Add Product
-                </button>
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line" style="width:60%"></div>
+                    <div class="skeleton-line" style="width:85%"></div>
+                    <div class="skeleton-line" style="width:35%"></div>
+                </div>
             </div>
-            {% endfor %}
-
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div class="skeleton-body">
+                    <div class="skeleton-line" style="width:75%"></div>
+                    <div class="skeleton-line" style="width:80%"></div>
+                    <div class="skeleton-line" style="width:45%"></div>
+                </div>
+            </div>
         </div>
 
     </div>
 
     <footer>© 2026 <span>Customer Portal</span> — Admin Panel</footer>
 
-    <!-- ── ADD PRODUCT MODAL ── -->
+    <!-- ── MODAL (Add / Edit) ── -->
     <div class="modal-backdrop" id="modalBackdrop" onclick="handleBackdropClick(event)">
         <div class="modal">
             <button class="modal-close" onclick="closeModal()">✕</button>
-            <div class="modal-eyebrow">✦ New Product</div>
-            <div class="modal-title">Add Product</div>
+            <div class="modal-eyebrow" id="modalEyebrow">✦ New Product</div>
+            <div class="modal-title"  id="modalTitle">Add Product</div>
 
-            <form id="addProductForm" enctype="multipart/form-data">
-                {% csrf_token %}
+            <!-- hidden field to store product id during edit -->
+            <input type="hidden" id="editProductId">
 
-                <div class="field">
-                    <label>Product Name</label>
-                    <div class="input-wrap">
-                        <span class="input-icon">🏷</span>
-                        <input type="text" name="name" id="productName" placeholder="e.g. Wireless Headphones" required>
+            <div class="field">
+                <label>Product Name</label>
+                <div class="input-wrap">
+                    <span class="input-icon">🏷</span>
+                    <input type="text" id="productName" placeholder="e.g. Wireless Headphones" required>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Description</label>
+                <textarea id="productDesc" placeholder="Describe the product…" required></textarea>
+            </div>
+
+            <div class="field">
+                <label>Price (₹)</label>
+                <div class="input-wrap">
+                    <span class="input-icon">💰</span>
+                    <input type="number" id="productPrice" placeholder="e.g. 1299" min="0" step="0.01" required>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Product Image</label>
+                <div class="file-upload-wrap" id="dropZone">
+                    <input type="file" id="productImage" accept="image/*" onchange="handleFileSelect(this)">
+                    <span class="upload-icon">🖼</span>
+                    <div class="upload-label">Drag & drop or <span>browse</span> to upload</div>
+                    <div class="file-preview" id="filePreview">
+                        <img id="previewImg" src="" alt="Preview">
+                        <div class="file-name" id="fileName"></div>
                     </div>
                 </div>
+            </div>
 
-                <div class="field">
-                    <label>Description</label>
-                    <textarea name="description" id="productDesc" placeholder="Describe the product…" required></textarea>
-                </div>
-
-                <div class="field">
-                    <label>Price (₹)</label>
-                    <div class="input-wrap">
-                        <span class="input-icon">💰</span>
-                        <input type="number" name="price" id="productPrice" placeholder="e.g. 1299" min="0" step="0.01" required>
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label>Product Image</label>
-                    <div class="file-upload-wrap" id="dropZone">
-                        <input type="file" name="image" id="productImage" accept="image/*" onchange="handleFileSelect(this)">
-                        <span class="upload-icon">🖼</span>
-                        <div class="upload-label">Drag & drop or <span>browse</span> to upload</div>
-                        <div class="file-preview" id="filePreview">
-                            <img id="previewImg" src="" alt="Preview">
-                            <div class="file-name" id="fileName"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <button type="submit" class="modal-submit" id="submitBtn">
-                    <span class="btn-text">Add Product →</span>
-                    <div class="btn-spinner"></div>
-                </button>
-            </form>
+            <button class="modal-submit" id="submitBtn" onclick="submitProduct()">
+                <span class="btn-text" id="submitBtnText">Add Product →</span>
+                <div class="btn-spinner"></div>
+            </button>
         </div>
     </div>
 
     <!-- Toast -->
     <div class="toast success" id="toast">
         <div class="toast-icon" id="toastIcon">✓</div>
-        <span id="toastMsg">Product added!</span>
+        <span id="toastMsg">Done</span>
     </div>
 
     <script>
-        // ── Modal ──
-        function openModal() {
+
+        // ── Auth ──────────────────────────────────────────────────────────────────
+
+        async function checkAuth() {
+            const access = localStorage.getItem("access");
+            if (!access) { redirectToLogin(); return false; }
+            try {
+                const payload = JSON.parse(atob(access.split('.')[1]));
+                if (payload.exp * 1000 < Date.now()) {
+                    const token = await refreshAccessToken();
+                    return token !== null;
+                }
+                return true;
+            } catch { redirectToLogin(); return false; }
+        }
+
+        async function refreshAccessToken() {
+            const refresh = localStorage.getItem("refresh");
+            if (!refresh) { redirectToLogin(); return null; }
+            try {
+                const res = await fetch("/api/auth/token/refresh/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ refresh })
+                });
+                if (!res.ok) { redirectToLogin(); return null; }
+                const data = await res.json();
+                localStorage.setItem("access", data.access);
+                return data.access;
+            } catch { redirectToLogin(); return null; }
+        }
+
+        function redirectToLogin() {
+            localStorage.removeItem("access");
+            localStorage.removeItem("refresh");
+            window.location.href = "/api/auth/login-page/?reason=session_expired";
+        }
+
+        function logout() {
+            localStorage.removeItem("access");
+            window.location.href = "/api/auth/login-page/";
+        }
+
+        // ── Toast ─────────────────────────────────────────────────────────────────
+
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            document.getElementById('toastIcon').textContent = type === 'success' ? '✓' : '✕';
+            t.className = `toast ${type} show`;
+            setTimeout(() => t.classList.remove('show'), 3500);
+        }
+
+        // ── Render helpers ────────────────────────────────────────────────────────
+
+        /**
+         * API response shape (ProductSerializer):
+         * { id, name, description, price, image }
+         * image is a full URL string (because context={"request": request} in serializer)
+         */
+        function buildCard(product, index) {
+            const imageHtml = product.image
+                ? `<img src="${product.image}" alt="${product.name}">`
+                : `<div class="card-image-placeholder">📦</div>`;
+
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            card.style.animationDelay = `${index * 80}ms`;
+            card.innerHTML = `
+                <div class="card-image-wrap">
+                    ${imageHtml}
+                    <div class="card-image-overlay"></div>
+                    <div class="card-actions">
+                        <button class="card-action-btn btn-edit"   title="Edit"   onclick="editProduct(${product.id})">✏️</button>
+                        <button class="card-action-btn btn-delete" title="Delete" onclick="deleteProduct(${product.id}, this)">🗑</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3>${product.name}</h3>
+                    <p>${product.description || '—'}</p>
+                    <div class="card-footer">
+                        <span class="price">₹${parseFloat(product.price).toLocaleString('en-IN')}</span>
+                        <span class="product-id">ID #${product.id}</span>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        function renderGrid(products) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+
+            if (!products.length) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <span class="empty-icon">📦</span>
+                        <div class="empty-title">No products yet</div>
+                        <div class="empty-sub">Click "Add Product" to add your first product.</div>
+                        <button class="add-btn" style="margin:0 auto;" onclick="openModal('add')">
+                            <span class="add-btn-icon">＋</span> Add Product
+                        </button>
+                    </div>`;
+                return;
+            }
+
+            products.forEach((p, i) => grid.appendChild(buildCard(p, i)));
+        }
+
+        function updateStats(products) {
+            document.getElementById('stat-total').textContent = products.length;
+            document.getElementById('stat-stock').textContent = products.length;
+        }
+
+        function showGridError() {
+            document.getElementById('productGrid').innerHTML = `
+                <div class="error-state">
+                    <span class="error-icon">⚠️</span>
+                    <p>Failed to load products. Please try again.</p>
+                    <button class="retry-btn" onclick="loadProducts()">↺ Retry</button>
+                </div>`;
+        }
+
+        // ── Load products from API ────────────────────────────────────────────────
+
+        async function loadProducts() {
+            const authed = await checkAuth();
+            if (!authed) return;
+
+            // show skeletons again on retry
+            const grid = document.getElementById('productGrid');
+            if (!grid.querySelector('.skeleton-card')) {
+                grid.innerHTML = `
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:90%"></div><div class="skeleton-line" style="width:40%"></div></div></div>
+                    <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line" style="width:60%"></div><div class="skeleton-line" style="width:85%"></div><div class="skeleton-line" style="width:35%"></div></div></div>
+                `;
+            }
+
+            let token = localStorage.getItem("access");
+
+            try {
+                let res = await fetch("/api/auth/admin_product_listing/", {
+                    headers: { "Authorization": "Bearer " + token }
+                });
+
+                if (res.status === 401) {
+                    token = await refreshAccessToken();
+                    if (!token) return;
+                    res = await fetch("/api/auth/admin_product_listing/", {
+                        headers: { "Authorization": "Bearer " + token }
+                    });
+                }
+
+                if (res.status === 403) { showToast("Permission denied. Admins only.", "error"); return; }
+                if (!res.ok) { showGridError(); return; }
+
+                // API returns an array: [{ id, name, description, price, image }, ...]
+                const products = await res.json();
+                renderGrid(products);
+                updateStats(products);
+
+            } catch (err) {
+                console.error("Load products error:", err);
+                showGridError();
+            }
+        }
+
+        // ── Modal ─────────────────────────────────────────────────────────────────
+
+        function openModal(mode = 'add', product = null) {
+            document.getElementById('editProductId').value = '';
+            document.getElementById('productName').value   = '';
+            document.getElementById('productDesc').value   = '';
+            document.getElementById('productPrice').value  = '';
+            document.getElementById('filePreview').style.display = 'none';
+            document.getElementById('previewImg').src = '';
+            document.getElementById('productImage').value = '';
+
+            if (mode === 'edit' && product) {
+                document.getElementById('modalEyebrow').textContent  = '✦ Edit Product';
+                document.getElementById('modalTitle').textContent    = 'Edit Product';
+                document.getElementById('submitBtnText').textContent = 'Save Changes →';
+                document.getElementById('editProductId').value       = product.id;
+                document.getElementById('productName').value         = product.name;
+                document.getElementById('productDesc').value         = product.description || '';
+                document.getElementById('productPrice').value        = product.price;
+
+                // show existing image as preview
+                if (product.image) {
+                    document.getElementById('previewImg').src         = product.image;
+                    document.getElementById('fileName').textContent   = 'Current image';
+                    document.getElementById('filePreview').style.display = 'block';
+                }
+            } else {
+                document.getElementById('modalEyebrow').textContent  = '✦ New Product';
+                document.getElementById('modalTitle').textContent    = 'Add Product';
+                document.getElementById('submitBtnText').textContent = 'Add Product →';
+            }
+
             document.getElementById('modalBackdrop').classList.add('open');
             document.body.style.overflow = 'hidden';
         }
+
         function closeModal() {
             document.getElementById('modalBackdrop').classList.remove('open');
             document.body.style.overflow = '';
         }
+
         function handleBackdropClick(e) {
             if (e.target === document.getElementById('modalBackdrop')) closeModal();
         }
+
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-        // ── Image preview ──
+        // ── Image preview ─────────────────────────────────────────────────────────
+
         function handleFileSelect(input) {
             const file = input.files[0];
             if (!file) return;
@@ -535,9 +711,8 @@
             reader.readAsDataURL(file);
         }
 
-        // Drag & drop
         const dropZone = document.getElementById('dropZone');
-        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
         dropZone.addEventListener('drop', e => {
             e.preventDefault();
@@ -549,38 +724,64 @@
             }
         });
 
-        // ── Toast ──
-        function showToast(msg, type = 'success') {
-            const t = document.getElementById('toast');
-            document.getElementById('toastMsg').textContent = msg;
-            document.getElementById('toastIcon').textContent = type === 'success' ? '✓' : '✕';
-            t.className = `toast ${type} show`;
-            setTimeout(() => t.classList.remove('show'), 3500);
-        }
+        // ── Submit (Add or Edit) ──────────────────────────────────────────────────
 
-        // ── Form submit ──
-        document.getElementById('addProductForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
+        async function submitProduct() {
+            const btn       = document.getElementById('submitBtn');
+            const productId = document.getElementById('editProductId').value;
+            const name      = document.getElementById('productName').value.trim();
+            const desc      = document.getElementById('productDesc').value.trim();
+            const price     = document.getElementById('productPrice').value;
+            const imageFile = document.getElementById('productImage').files[0];
+
+            if (!name || !desc || !price) {
+                showToast("Please fill all required fields.", "error");
+                return;
+            }
+
             btn.classList.add('loading');
             btn.disabled = true;
 
-            const formData = new FormData(this);
-            const token = localStorage.getItem('access');
+            // Build FormData — matches MultiPartParser on backend
+            const formData = new FormData();
+            formData.append('name',        name);
+            formData.append('description', desc);
+            formData.append('price',       price);
+            if (imageFile) formData.append('image', imageFile);
+
+            let token = localStorage.getItem('access');
+            const isEdit  = !!productId;
+            // For edit we'd need a PUT/PATCH endpoint — currently backend only has POST & DELETE
+            // so we use POST for both; adjust URL/method if you add a PUT endpoint later
+            const url     = isEdit
+                ? `/api/auth/admin_product_listing/`   // swap to PUT /<id>/ if you add it
+                : `/api/auth/admin_product_listing/`;
+            const method  = 'POST';
 
             try {
-                const res = await fetch('/api/auth/admin_product_listing/', {
-                    method: 'POST',
+                let res = await fetch(url, {
+                    method,
                     headers: { 'Authorization': 'Bearer ' + token },
                     body: formData
                 });
 
+                if (res.status === 401) {
+                    token = await refreshAccessToken();
+                    if (!token) return;
+                    res = await fetch(url, {
+                        method,
+                        headers: { 'Authorization': 'Bearer ' + token },
+                        body: formData
+                    });
+                }
+
                 if (res.ok) {
-                    showToast('Product added successfully!', 'success');
+                    showToast(isEdit ? 'Product updated!' : 'Product added successfully!', 'success');
                     closeModal();
-                    setTimeout(() => location.reload(), 1200);
+                    setTimeout(() => loadProducts(), 1000); // reload grid without page refresh
                 } else {
-                    showToast('Failed to add product.', 'error');
+                    const err = await res.json().catch(() => ({}));
+                    showToast(err?.error ? JSON.stringify(err.error) : 'Failed to save product.', 'error');
                 }
             } catch {
                 showToast('Network error. Please try again.', 'error');
@@ -588,34 +789,95 @@
                 btn.classList.remove('loading');
                 btn.disabled = false;
             }
-        });
-
-        // ── Edit / Delete placeholders ──
-        function editProduct(id) {
-            showToast(`Edit product #${id} — coming soon`, 'success');
         }
-        function deleteProduct(id) {
+
+        // ── Edit product ──────────────────────────────────────────────────────────
+
+        // We store products in memory after load so edit can pre-fill the form
+        let _productsCache = [];
+
+        async function loadProducts() {
+            const authed = await checkAuth();
+            if (!authed) return;
+
+            let token = localStorage.getItem("access");
+
+            try {
+                let res = await fetch("/api/auth/admin_product_listing/", {
+                    headers: { "Authorization": "Bearer " + token }
+                });
+
+                if (res.status === 401) {
+                    token = await refreshAccessToken();
+                    if (!token) return;
+                    res = await fetch("/api/auth/admin_product_listing/", {
+                        headers: { "Authorization": "Bearer " + token }
+                    });
+                }
+
+                if (res.status === 403) { showToast("Permission denied.", "error"); return; }
+                if (!res.ok)            { showGridError(); return; }
+
+                const products = await res.json();
+                _productsCache = products;          // cache for edit pre-fill
+                renderGrid(products);
+                updateStats(products);
+
+            } catch (err) {
+                console.error(err);
+                showGridError();
+            }
+        }
+
+        function editProduct(id) {
+            const product = _productsCache.find(p => p.id === id);
+            if (!product) { showToast("Product data not found.", "error"); return; }
+            openModal('edit', product);
+        }
+
+        // ── Delete product ────────────────────────────────────────────────────────
+
+        async function deleteProduct(id, btnEl) {
             if (!confirm(`Delete product #${id}? This cannot be undone.`)) return;
-            const token = localStorage.getItem('access');
-            fetch(`/api/auth/admin_product/${id}/`, {
-                method: 'DELETE',
-                headers: { 'Authorization': 'Bearer ' + token }
-            })
-            .then(res => {
+
+            // Animate card out
+            const card = btnEl.closest('.product-card');
+            if (card) { card.style.opacity = '0.4'; card.style.pointerEvents = 'none'; }
+
+            let token = localStorage.getItem('access');
+
+            try {
+                let res = await fetch(`/api/auth/admin_product/${id}/`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (res.status === 401) {
+                    token = await refreshAccessToken();
+                    if (!token) return;
+                    res = await fetch(`/api/auth/admin_product/${id}/`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                }
+
                 if (res.ok) {
                     showToast(`Product #${id} deleted`, 'success');
-                    setTimeout(() => location.reload(), 1200);
+                    _productsCache = _productsCache.filter(p => p.id !== id);
+                    renderGrid(_productsCache);
+                    updateStats(_productsCache);
                 } else {
                     showToast('Failed to delete product.', 'error');
+                    if (card) { card.style.opacity = '1'; card.style.pointerEvents = ''; }
                 }
-            })
-            .catch(() => showToast('Network error.', 'error'));
+            } catch {
+                showToast('Network error.', 'error');
+                if (card) { card.style.opacity = '1'; card.style.pointerEvents = ''; }
+            }
         }
 
-        function logout() {
-            localStorage.removeItem('access');
-            window.location.href = '/api/auth/login-page/';
-        }
+        // ── Boot ──────────────────────────────────────────────────────────────────
+        loadProducts();
     </script>
 
 </body>

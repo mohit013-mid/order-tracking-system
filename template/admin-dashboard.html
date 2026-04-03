@@ -37,7 +37,6 @@
             overflow-x: hidden;
         }
 
-        /* ── Grid ── */
         body::before {
             content: '';
             position: fixed; inset: 0;
@@ -50,14 +49,12 @@
         }
         @keyframes gridShift { from { transform: translateY(0); } to { transform: translateY(60px); } }
 
-        /* ── Blobs ── */
         .blob { position: fixed; border-radius: 50%; filter: blur(130px); pointer-events: none; z-index: 0; animation: blobFloat 18s ease-in-out infinite alternate; }
         .blob-1 { width: 500px; height: 500px; background: var(--accent);  opacity: 0.25; top: -160px; left: -100px; }
         .blob-2 { width: 380px; height: 380px; background: var(--accent2); opacity: 0.2;  bottom: -100px; right: -80px; animation-delay: -9s; }
         .blob-3 { width: 280px; height: 280px; background: var(--accent3); opacity: 0.14; top: 40%; left: 55%; animation-delay: -15s; }
         @keyframes blobFloat { from { transform: translate(0,0) scale(1); } to { transform: translate(30px,25px) scale(1.08); } }
 
-        /* ── HEADER ── */
         header {
             position: sticky; top: 0; z-index: 100;
             display: flex; justify-content: space-between; align-items: center;
@@ -107,17 +104,14 @@
         .nav-logout { background: rgba(255,106,106,0.1) !important; border-color: rgba(255,106,106,0.2) !important; color: #ff6a6a !important; }
         .nav-logout:hover { background: rgba(255,106,106,0.2) !important; border-color: rgba(255,106,106,0.4) !important; }
 
-        /* ── PAGE ── */
         .page { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 52px 24px 80px; }
 
-        /* ── HERO ── */
         .hero { margin-bottom: 36px; animation: fadeUp 0.6s 0.15s ease both; }
         @keyframes fadeUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .hero-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--accent2); margin-bottom: 8px; }
         .hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(26px,4vw,38px); font-weight: 800; letter-spacing: -1px; margin-bottom: 6px; }
         .hero p { color: var(--muted); font-size: 14px; }
 
-        /* ── STATS ── */
         .stats { display: flex; gap: 16px; margin-bottom: 36px; flex-wrap: wrap; animation: fadeUp 0.6s 0.25s ease both; }
         .stat-pill {
             background: var(--card-bg); border: 1px solid var(--border);
@@ -142,7 +136,6 @@
         .stat-pill-value.pink   { color: var(--accent2); }
         .stat-pill-value.green  { color: var(--s-delivered); }
 
-        /* ── TABLE CARD ── */
         .table-card {
             background: var(--card-bg); border: 1px solid var(--border);
             border-radius: 20px; overflow: hidden; backdrop-filter: blur(14px);
@@ -182,7 +175,6 @@
         .product-cell { display: flex; align-items: center; gap: 10px; }
         .product-icon { width: 32px; height: 32px; background: rgba(124,106,255,0.12); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
 
-        /* ── STATUS BADGE ── */
         .status {
             display: inline-flex; align-items: center; gap: 6px;
             padding: 5px 12px; border-radius: 20px;
@@ -201,7 +193,6 @@
         .status.delivered .status-dot { background: var(--s-delivered); }
         @keyframes dotPulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
 
-        /* ── ASSIGN CELL ── */
         .assign-cell { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
         .agent-select {
@@ -233,7 +224,6 @@
         .assign-btn.done { background: linear-gradient(135deg, #3dba6f, #2ea85f); box-shadow: 0 4px 14px rgba(61,186,111,0.3); }
         .assign-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-        /* Assigned tag */
         .assigned-tag {
             display: inline-flex; align-items: center; gap: 6px;
             font-size: 12px; font-weight: 600;
@@ -243,7 +233,32 @@
             padding: 5px 12px; border-radius: 20px;
         }
 
-        /* ── TOAST ── */
+        /* Loading skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 6px;
+        }
+        @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+        .skeleton-row td { padding: 20px; }
+        .skeleton-cell { height: 16px; border-radius: 4px; }
+
+        /* Error state */
+        .error-state {
+            text-align: center; padding: 60px 24px; color: var(--muted);
+        }
+        .error-state .error-icon { font-size: 40px; margin-bottom: 12px; }
+        .error-state p { font-size: 14px; }
+        .retry-btn {
+            margin-top: 16px; padding: 9px 20px; border-radius: 10px;
+            background: rgba(124,106,255,0.12); border: 1px solid rgba(124,106,255,0.3);
+            color: var(--accent); font-family: 'DM Sans', sans-serif;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .retry-btn:hover { background: rgba(124,106,255,0.2); }
+
         .toast {
             position: fixed; bottom: 32px; right: 32px; z-index: 999;
             background: var(--surface2); border-radius: 12px; padding: 13px 18px;
@@ -262,7 +277,6 @@
         .toast.error   .toast-icon { background: rgba(255,106,106,0.12); color: var(--danger); }
         .toast.warn    .toast-icon { background: rgba(245,200,66,0.12);  color: var(--s-created); }
 
-        /* ── FOOTER ── */
         footer {
             position: relative; z-index: 1;
             text-align: center; padding: 24px;
@@ -293,7 +307,6 @@
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
 
-    <!-- HEADER -->
     <header>
         <a href="#" class="logo">
             <div class="logo-icon">⚡</div>
@@ -313,7 +326,6 @@
         </div>
     </header>
 
-    <!-- PAGE -->
     <div class="page">
 
         <div class="hero">
@@ -322,11 +334,10 @@
             <p>Oversee all orders and assign delivery agents in real-time.</p>
         </div>
 
-        <!-- STATS -->
         <div class="stats">
             <div class="stat-pill p1">
                 <div class="stat-pill-label">Total Orders</div>
-                <div class="stat-pill-value purple">{{ orders|length }}</div>
+                <div class="stat-pill-value purple" id="stat-total">—</div>
             </div>
             <div class="stat-pill p2">
                 <div class="stat-pill-label">In Transit</div>
@@ -342,7 +353,6 @@
             </div>
         </div>
 
-        <!-- TABLE -->
         <div class="table-card">
             <div class="table-toolbar">
                 <div class="table-title">📦 All Orders</div>
@@ -359,52 +369,32 @@
                         <th>Assign Agent</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for order in orders %}
-                    <tr style="animation-delay: {{ forloop.counter0 }}00ms;">
-                        <td><span class="order-id">#{{ order.id }}</span></td>
-                        <td>
-                            <div class="user-cell">
-                                <div class="avatar">{{ order.customer.username|slice:":1"|upper }}</div>
-                                {{ order.customer.username }}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="product-cell">
-                                <div class="product-icon">📦</div>
-                                {{ order.product.name }}
-                            </div>
-                        </td>
-                        <td>
-                            <span class="status {{ order.status|lower }}">
-                                <span class="status-dot"></span>
-                                {{ order.status }}
-                            </span>
-                        </td>
-                        <td>
-                            {% if order.agent %}
-                            <div class="user-cell">
-                                <div class="avatar green-av">{{ order.agent.username|slice:":1"|upper }}</div>
-                                {{ order.agent.username }}
-                            </div>
-                            {% else %}
-                            <span class="unassigned-tag">Unassigned</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                                <select class="agent-select" id="agent-{{ order.id }}">
-                                    <option value="">Select Agent</option>
-                                    {% for agent in agents %}
-                                    <option value="{{ agent.user.id }}">{{ agent.user.username }}</option>
-                                    {% endfor %}
-                                </select>
-                                <button class="assign-btn" id="abtn-{{ order.id }}" onclick="assignAgent({{ order.id }})">
-                                    Assign →
-                                </button>
-                            </div>
-                        </td>
+                <tbody id="ordersTableBody">
+                    <!-- Skeleton rows while loading -->
+                    <tr class="skeleton-row">
+                        <td><div class="skeleton skeleton-cell" style="width:60px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:120px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:140px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:90px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:100px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:180px"></div></td>
                     </tr>
-                    {% endfor %}
+                    <tr class="skeleton-row">
+                        <td><div class="skeleton skeleton-cell" style="width:60px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:100px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:130px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:80px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:110px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:180px"></div></td>
+                    </tr>
+                    <tr class="skeleton-row">
+                        <td><div class="skeleton skeleton-cell" style="width:55px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:115px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:150px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:95px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:90px"></div></td>
+                        <td><div class="skeleton skeleton-cell" style="width:180px"></div></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -413,30 +403,67 @@
 
     <footer>© 2026 <span>Customer Portal</span> — Admin Panel</footer>
 
-    <!-- Toast -->
     <div class="toast success" id="toast">
         <div class="toast-icon" id="toastIcon">✓</div>
         <span id="toastMsg">Done</span>
     </div>
 
     <script>
-        // Compute stats from DOM
-        (function() {
-            const rows = document.querySelectorAll('tbody tr');
-            let transit = 0, pending = 0, delivered = 0;
-            rows.forEach(row => {
-                const s = row.querySelector('.status');
-                if (!s) return;
-                const cls = [...s.classList].find(c => ['created','packed','shipped','out_for_delivery','delivered'].includes(c));
-                if (['shipped','out_for_delivery','packed'].includes(cls)) transit++;
-                if (cls === 'created') pending++;
-                if (cls === 'delivered') delivered++;
-            });
-            document.getElementById('stat-transit').textContent   = transit;
-            document.getElementById('stat-pending').textContent   = pending;
-            document.getElementById('stat-delivered').textContent = delivered;
-            document.getElementById('orderCount').textContent     = rows.length + ' orders';
-        })();
+        // ── Auth helpers ──────────────────────────────────────────────────────────
+
+        async function checkAuth() {
+            const access = localStorage.getItem("access");
+            if (!access) { redirectToLogin(); return false; }
+
+            try {
+                const payload = JSON.parse(atob(access.split('.')[1]));
+                if (payload.exp * 1000 < Date.now()) {
+                    const refreshed = await tryRefreshToken();
+                    if (!refreshed) return false;
+                }
+                return true;
+            } catch {
+                redirectToLogin();
+                return false;
+            }
+        }
+
+        async function tryRefreshToken() {
+            const refresh = localStorage.getItem("refresh");
+            if (!refresh) { redirectToLogin(); return false; }
+
+            try {
+                const res = await fetch("/api/auth/token/refresh/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ refresh })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem("access", data.access);
+                    return true;
+                }
+                redirectToLogin();
+                return false;
+            } catch {
+                redirectToLogin();
+                return false;
+            }
+        }
+
+        function redirectToLogin() {
+            localStorage.removeItem("access");
+            localStorage.removeItem("refresh");
+            window.location.href = "/api/auth/login-page/?reason=session_expired";
+        }
+
+        function logout() {
+            localStorage.removeItem("access");
+            localStorage.removeItem("refresh")
+            window.location.href = "/api/auth/login-page/";
+        }
+
+        // ── Toast ─────────────────────────────────────────────────────────────────
 
         function showToast(msg, type = 'success') {
             const t   = document.getElementById("toast");
@@ -446,6 +473,167 @@
             ico.textContent = type === 'success' ? '✓' : type === 'warn' ? '⚠' : '✕';
             setTimeout(() => t.classList.remove("show"), 3000);
         }
+
+        // ── Render helpers ────────────────────────────────────────────────────────
+
+        function getInitial(username) {
+            return (username || '?').charAt(0).toUpperCase();
+        }
+
+        /**
+         * Build one <tr> from an order object + agents array.
+         * order shape: { id, customer, product, agent, status, created_at }
+         * agents shape: [{ id, username }, ...]
+         */
+        function buildRow(order, agents, index) {
+            const statusClass = (order.status || '').toLowerCase().replace(/\s+/g, '_');
+
+            // Agent options
+            const agentOptions = agents.map(a =>
+                `<option value="${a.id}">${a.username}</option>`
+            ).join('');
+
+            // Already-assigned agent cell
+            const agentCell = order.agent
+                ? `<div class="user-cell">
+                       <div class="avatar green-av">${getInitial(order.agent)}</div>
+                       ${order.agent}
+                   </div>`
+                : `<span style="color:var(--muted);font-size:13px;">Unassigned</span>`;
+
+            const tr = document.createElement('tr');
+            tr.style.animationDelay = `${index * 60}ms`;
+            tr.innerHTML = `
+                <td><span class="order-id">#${order.id}</span></td>
+                <td>
+                    <div class="user-cell">
+                        <div class="avatar">${getInitial(order.customer)}</div>
+                        ${order.customer}
+                    </div>
+                </td>
+                <td>
+                    <div class="product-cell">
+                        <div class="product-icon">📦</div>
+                        ${order.product}
+                    </div>
+                </td>
+                <td>
+                    <span class="status ${statusClass}">
+                        <span class="status-dot"></span>
+                        ${order.status}
+                    </span>
+                </td>
+                <td id="agent-assigned-${order.id}">${agentCell}</td>
+                <td>
+                    <div class="assign-cell">
+                        <select class="agent-select" id="agent-${order.id}">
+                            <option value="">Select Agent</option>
+                            ${agentOptions}
+                        </select>
+                        <button class="assign-btn" id="abtn-${order.id}"
+                                onclick="assignAgent(${order.id})">
+                            Assign →
+                        </button>
+                    </div>
+                </td>
+            `;
+            return tr;
+        }
+
+        function renderTable(orders, agents) {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = '';
+
+            if (!orders.length) {
+                tbody.innerHTML = `
+                    <tr><td colspan="6">
+                        <div class="error-state">
+                            <div class="error-icon">📭</div>
+                            <p>No orders found.</p>
+                        </div>
+                    </td></tr>`;
+                return;
+            }
+
+            orders.forEach((order, i) => {
+                tbody.appendChild(buildRow(order, agents, i));
+            });
+        }
+
+        function updateStats(orders) {
+            let transit = 0, pending = 0, delivered = 0;
+            orders.forEach(o => {
+                const s = (o.status || '').toLowerCase();
+                if (['shipped', 'out_for_delivery', 'packed'].includes(s)) transit++;
+                if (s === 'created') pending++;
+                if (s === 'delivered') delivered++;
+            });
+            document.getElementById('stat-total').textContent    = orders.length;
+            document.getElementById('stat-transit').textContent  = transit;
+            document.getElementById('stat-pending').textContent  = pending;
+            document.getElementById('stat-delivered').textContent = delivered;
+            document.getElementById('orderCount').textContent    = `${orders.length} orders`;
+        }
+
+        function showTableError() {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = `
+                <tr><td colspan="6">
+                    <div class="error-state">
+                        <div class="error-icon">⚠️</div>
+                        <p>Failed to load orders. Please try again.</p>
+                        <button class="retry-btn" onclick="loadDashboard()">↺ Retry</button>
+                    </div>
+                </td></tr>`;
+            document.getElementById('orderCount').textContent = 'Error';
+        }
+
+        // ── Fetch dashboard data ──────────────────────────────────────────────────
+
+        async function loadDashboard() {
+            const authed = await checkAuth();
+            if (!authed) return;
+
+            const token = localStorage.getItem("access");
+
+            try {
+                const res = await fetch("/api/auth/admin-dashboard-api/", {
+                    headers: { "Authorization": "Bearer " + token }
+                });
+
+                if (res.status === 401) {
+                    // Token may have just expired — refresh once and retry
+                    const newToken = await refreshAccessToken();
+                    if (!newToken) return;
+                    return loadDashboard();
+                }
+
+                if (res.status === 403) {
+                    showToast("Permission denied. Admins only.", "error");
+                    return;
+                }
+
+                if (!res.ok) {
+                    showTableError();
+                    return;
+                }
+
+                const data = await res.json();
+                // data = { orders: [...], agents: [...] }
+
+                // Normalise agents: API returns { id, username }
+                const agents = data.agents || [];
+
+                renderTable(data.orders || [], agents);
+                updateStats(data.orders || []);
+
+            } catch (err) {
+                console.error("Dashboard load error:", err);
+                showTableError();
+            }
+        }
+
+        // ── Assign agent ──────────────────────────────────────────────────────────
 
         async function assignAgent(orderId) {
             const agentId = document.getElementById("agent-" + orderId).value;
@@ -457,7 +645,7 @@
             }
 
             btn.textContent = '…';
-            btn.disabled = true;
+            btn.disabled    = true;
 
             let token = localStorage.getItem("access");
 
@@ -472,9 +660,13 @@
 
             if (res.status === 401) {
                 token = await refreshAccessToken();
+                if (!token) return;
                 res = await fetch("/api/auth/assign-agent/", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
                     body: JSON.stringify({ order_id: orderId, agent_id: agentId })
                 });
             }
@@ -483,30 +675,49 @@
                 btn.textContent = '✓ Assigned';
                 btn.classList.add('done');
                 showToast(`Order #${orderId} assigned successfully`, 'success');
-                setTimeout(() => location.reload(), 1500);
+
+                // Update the assigned-agent cell without a full reload
+                const select   = document.getElementById("agent-" + orderId);
+                const agentName = select.options[select.selectedIndex].text;
+                const assignedCell = document.getElementById("agent-assigned-" + orderId);
+                if (assignedCell) {
+                    assignedCell.innerHTML = `
+                        <div class="user-cell">
+                            <div class="avatar green-av">${getInitial(agentName)}</div>
+                            ${agentName}
+                        </div>`;
+                }
             } else {
                 btn.textContent = 'Assign →';
-                btn.disabled = false;
+                btn.disabled    = false;
                 showToast("Failed to assign agent", 'error');
             }
         }
 
+        // ── Refresh token utility ─────────────────────────────────────────────────
+
         async function refreshAccessToken() {
             const refresh = localStorage.getItem("refresh");
-            const res  = await fetch("/api/auth/token/refresh/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ refresh })
-            });
-            const data = await res.json();
-            localStorage.setItem("access", data.access);
-            return data.access;
+            if (!refresh) { redirectToLogin(); return null; }
+
+            try {
+                const res  = await fetch("/api/auth/token/refresh/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ refresh })
+                });
+                if (!res.ok) { redirectToLogin(); return null; }
+                const data = await res.json();
+                localStorage.setItem("access", data.access);
+                return data.access;
+            } catch {
+                redirectToLogin();
+                return null;
+            }
         }
 
-        function logout() {
-            localStorage.removeItem("access");
-            window.location.href = "/api/auth/login-page/";
-        }
+        // ── Boot ──────────────────────────────────────────────────────────────────
+        loadDashboard();
     </script>
 
 </body>
