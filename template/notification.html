@@ -121,106 +121,179 @@
     </div>
 
     <script>
-        // ✅ Auth check first
+
+    // ── Auth helpers ──────────────────────────────────────────────────────────
+
+    async function refreshAccessToken() {
+        const refresh = localStorage.getItem("refresh");
+        if (!refresh) { redirectToLogin(); return null; }
+
+        try {
+            const res = await fetch("/api/auth/token/refresh/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ refresh })
+            });
+            if (!res.ok) { redirectToLogin(); return null; }
+            const data = await res.json();
+            localStorage.setItem("access", data.access);
+            return data.access;
+        } catch {
+            redirectToLogin();
+            return null;
+        }
+    }
+
+    async function checkAuth() {
         const access = localStorage.getItem("access");
-        if (!access) window.location.href = "/api/auth/login-page/";
+        if (!access) { redirectToLogin(); return false; }
 
-        async function tryRefreshToken() {
-            const refresh = localStorage.getItem("refresh");
-            if (!refresh) { redirectToLogin(); return false; }
-
-            try {
-                const res = await fetch("/api/auth/token/refresh/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ refresh })
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    localStorage.setItem("access", data.access);
-                    return true;
-                }
-                redirectToLogin();
-                return false;
-            } catch {
-                redirectToLogin();
-                return false;
+        try {
+            const payload = JSON.parse(atob(access.split('.')[1]));
+            if (payload.exp * 1000 < Date.now()) {
+                const newToken = await refreshAccessToken();
+                return newToken !== null;
             }
+            return true;
+        } catch {
+            redirectToLogin();
+            return false;
+        }
+    }
+
+    function redirectToLogin() {
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+        window.location.href = "/api/auth/login-page/?reason=session_expired";
+    }
+
+    function logout() {
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+        closeWebSocket();
+        window.location.href = "/api/auth/login-page/";
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    function formatDate(str) {
+        try {
+            return new Date(str).toLocaleDateString('en-IN', {
+                day: '2-digit', month: 'short', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        } catch { return str; }
+    }
+
+    function updateUnreadBadge() {
+        const remaining = document.querySelectorAll(".notif-card.unread").length;
+        const badge     = document.getElementById("unread-badge");
+        const countEl   = document.getElementById("unread-count");
+        if (remaining > 0) {
+            badge.style.display = "inline-flex";
+            if (countEl) countEl.textContent = remaining;
+        } else {
+            badge.style.display = "none";
+        }
+    }
+
+    // ── Render ────────────────────────────────────────────────────────────────
+
+    function renderNotifications(data) {
+        const list = document.getElementById("notif-list");
+
+        const unread = data.filter(n => !n.is_read);
+        const badge  = document.getElementById("unread-badge");
+        if (unread.length > 0) {
+            badge.style.display = "inline-flex";
+            document.getElementById("unread-count").textContent = unread.length;
+        } else {
+            badge.style.display = "none";
         }
 
-        function redirectToLogin() {
-            localStorage.removeItem("access");
-            localStorage.removeItem("refresh");
-            window.location.href = "/api/auth/login-page/?reason=session_expired";
+        if (data.length === 0) {
+            list.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-icon">🔕</span>
+                    <h3>All caught up!</h3>
+                    <p>You have no notifications right now.<br>We'll let you know when something happens.</p>
+                </div>`;
+            return;
         }
 
-        function formatDate(str) {
-            try {
-                return new Date(str).toLocaleDateString('en-IN', {
-                    day: '2-digit', month: 'short', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit'
-                });
-            } catch { return str; }
-        }
+        list.innerHTML = data.map((n, i) => buildNotifCard(n, i)).join('');
+    }
 
-        function renderNotifications(data) {
-            const list = document.getElementById("notif-list");
-            const unread = data.filter(n => !n.is_read);
-
-            // ✅ Update unread badge
-            const badge = document.getElementById("unread-badge");
-            if (unread.length > 0) {
-                badge.style.display = "inline-flex";
-                document.getElementById("unread-count").textContent = unread.length;
-            } else {
-                badge.style.display = "none";
-            }
-
-            if (data.length === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <span class="empty-icon">🔕</span>
-                        <h3>All caught up!</h3>
-                        <p>You have no notifications right now.<br>We'll let you know when something happens.</p>
-                    </div>`;
-                return;
-            }
-
-            list.innerHTML = data.map((n, i) => `
-                <div class="notif-card ${n.is_read ? '' : 'unread'}" 
-                     style="animation-delay: ${0.3 + i * 0.08}s"
-                     id="notif-${n.id}">
-
-                    <div class="notif-icon ${n.is_read ? 'read' : 'unread'}">
-                        ${n.is_read ? '🔔' : '🚨'}
-                    </div>
-
-                    <div class="notif-content">
-                        <p class="notif-message">${n.message}</p>
-                        <div class="notif-meta">
-                            <span class="notif-time">🕐 ${formatDate(n.created_at)}</span>
-                            ${!n.is_read
-                                ? `<button class="mark-read-btn" onclick="markAsRead(${n.id})">Mark as Read →</button>`
-                                : ''
-                            }
-                        </div>
+    function buildNotifCard(n, i = 0) {
+        return `
+            <div class="notif-card ${n.is_read ? '' : 'unread'}"
+                 style="animation-delay: ${0.3 + i * 0.08}s"
+                 id="notif-${n.id}">
+                <div class="notif-icon ${n.is_read ? 'read' : 'unread'}">
+                    ${n.is_read ? '🔔' : '🚨'}
+                </div>
+                <div class="notif-content">
+                    <p class="notif-message">${n.message}</p>
+                    <div class="notif-meta">
+                        <span class="notif-time">🕐 ${formatDate(n.created_at)}</span>
+                        ${!n.is_read
+                            ? `<button class="mark-read-btn" onclick="markAsRead(${n.id})">Mark as Read →</button>`
+                            : ''
+                        }
                     </div>
                 </div>
-            `).join('');
-        }
+            </div>`;
+    }
 
-        // ✅ Load notifications from API
-        async function loadNotifications() {
-            const token = localStorage.getItem("access");
+    /**
+     * Prepend a new real-time notification card to the top of the list.
+     * Called by the WebSocket handler when a new notification arrives.
+     */
+    function prependNotifCard(n) {
+        const list = document.getElementById("notif-list");
 
-            const res = await fetch("/not/notifications_api/", {
+        // Remove empty state if present
+        const empty = list.querySelector(".empty-state");
+        if (empty) list.innerHTML = '';
+
+        // Build and insert at top
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = buildNotifCard(n, 0);
+        const card = wrapper.firstElementChild;
+
+        // Slide-in animation
+        card.style.opacity   = '0';
+        card.style.transform = 'translateY(-12px)';
+        list.prepend(card);
+
+        requestAnimationFrame(() => {
+            card.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+            card.style.opacity    = '1';
+            card.style.transform  = 'translateY(0)';
+        });
+
+        updateUnreadBadge();
+    }
+
+    // ── Load notifications (REST) ─────────────────────────────────────────────
+
+    async function loadNotifications() {
+        const authed = await checkAuth();
+        if (!authed) return;
+
+        let token = localStorage.getItem("access");
+
+        try {
+            let res = await fetch("/not/notifications_api/", {
                 headers: { "Authorization": "Bearer " + token }
             });
 
             if (res.status === 401) {
-                const refreshed = await tryRefreshToken();
-                if (refreshed) { loadNotifications(); }
-                return;
+                token = await refreshAccessToken();
+                if (!token) return;
+                res = await fetch("/not/notifications_api/", {
+                    headers: { "Authorization": "Bearer " + token }
+                });
             }
 
             if (!res.ok) {
@@ -228,82 +301,165 @@
                     <div class="empty-state">
                         <span class="empty-icon">⚠️</span>
                         <h3>Failed to load</h3>
-                        <p>Could not fetch notifications. Please refresh.</p>
+                        <p>Could not fetch notifications.
+                           <button class="mark-read-btn" onclick="loadNotifications()">Retry</button>
+                        </p>
                     </div>`;
                 return;
             }
 
             const data = await res.json();
             renderNotifications(data);
+
+        } catch (err) {
+            console.error("Load notifications error:", err);
         }
+    }
 
-        // ✅ Mark single notification as read
-        async function markAsRead(id) {
-            const token = localStorage.getItem("access");
+    // ── Mark as read (REST) ───────────────────────────────────────────────────
 
-            const res = await fetch(`/not/api/notification/${id}/mark-read/`, {
+    async function markAsRead(id) {
+        let token = localStorage.getItem("access");
+
+        let res = await fetch(`/not/api/notification/${id}/mark-read/`, {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + token }
+        });
+
+        if (res.status === 401) {
+            token = await refreshAccessToken();
+            if (!token) return;
+            res = await fetch(`/not/api/notification/${id}/mark-read/`, {
                 method: "POST",
                 headers: { "Authorization": "Bearer " + token }
             });
-
-            if (res.status === 401) {
-                const refreshed = await tryRefreshToken();
-                if (refreshed) markAsRead(id);
-                return;
-            }
-
-            if (res.ok) {
-                // ✅ Update UI without full reload
-                const card = document.getElementById(`notif-${id}`);
-                if (card) {
-                    card.classList.remove("unread");
-                    card.querySelector(".notif-icon").classList.replace("unread", "read");
-                    card.querySelector(".notif-icon").textContent = "🔔";
-                    const btn = card.querySelector(".mark-read-btn");
-                    if (btn) btn.remove();
-                }
-
-                // Update unread count
-                const remaining = document.querySelectorAll(".notif-card.unread").length;
-                const badge = document.getElementById("unread-badge");
-                if (remaining === 0) {
-                    badge.style.display = "none";
-                } else {
-                    document.getElementById("unread-count").textContent = remaining;
-                }
-            }
         }
 
-        // ✅ Mark all as read
-        async function markAllRead() {
-            const token = localStorage.getItem("access");
+        if (res.ok) {
+            const card = document.getElementById(`notif-${id}`);
+            if (card) {
+                card.classList.remove("unread");
+                const icon = card.querySelector(".notif-icon");
+                if (icon) { icon.classList.replace("unread", "read"); icon.textContent = "🔔"; }
+                const btn = card.querySelector(".mark-read-btn");
+                if (btn) btn.remove();
+            }
+            updateUnreadBadge();
+        }
+    }
 
-            const res = await fetch("/not/api/notification/mark-all-read/", {
+    async function markAllRead() {
+        let token = localStorage.getItem("access");
+
+        let res = await fetch("/not/api/notification/mark-all-read/", {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + token }
+        });
+
+        if (res.status === 401) {
+            token = await refreshAccessToken();
+            if (!token) return;
+            res = await fetch("/not/api/notification/mark-all-read/", {
                 method: "POST",
                 headers: { "Authorization": "Bearer " + token }
             });
-
-            if (res.status === 401) {
-                const refreshed = await tryRefreshToken();
-                if (refreshed) markAllRead();
-                return;
-            }
-
-            if (res.ok) {
-                // ✅ Update all cards in UI without reload
-                document.querySelectorAll(".notif-card.unread").forEach(card => {
-                    card.classList.remove("unread");
-                    card.querySelector(".notif-icon").classList.replace("unread", "read");
-                    card.querySelector(".notif-icon").textContent = "🔔";
-                    const btn = card.querySelector(".mark-read-btn");
-                    if (btn) btn.remove();
-                });
-                document.getElementById("unread-badge").style.display = "none";
-            }
         }
 
-        loadNotifications();
-    </script>
+        if (res.ok) {
+            document.querySelectorAll(".notif-card.unread").forEach(card => {
+                card.classList.remove("unread");
+                const icon = card.querySelector(".notif-icon");
+                if (icon) { icon.classList.replace("unread", "read"); icon.textContent = "🔔"; }
+                const btn = card.querySelector(".mark-read-btn");
+                if (btn) btn.remove();
+            });
+            document.getElementById("unread-badge").style.display = "none";
+        }
+    }
+
+    // ── WebSocket (real-time) ─────────────────────────────────────────────────
+
+    let socket     = null;
+    let wsRetries  = 0;
+    const WS_MAX_RETRIES = 5;
+
+    function connectWebSocket() {
+        const token = localStorage.getItem("access");
+        if (!token) return;
+
+        // Pass JWT token as query param — picked up by JWTAuthMiddleware
+        const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+        const wsUrl    = `${protocol}://${window.location.host}/ws/notifications/?token=${token}`;
+
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = () => {
+            console.log("🔌 WebSocket connected");
+            wsRetries = 0; // reset retry counter on success
+        };
+
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+
+                // Consumer sends: { type: "notification", message: "..." }
+                if (data.type === "notification") {
+                    // Build a minimal notification object for the card
+                    const newNotif = {
+                        id:         Date.now(), // temp id — no mark-read needed for new push
+                        message:    data.message,
+                        is_read:    false,
+                        created_at: new Date().toISOString()
+                    };
+                    prependNotifCard(newNotif);
+                }
+            } catch (err) {
+                console.error("WS message parse error:", err);
+            }
+        };
+
+        socket.onclose = (event) => {
+            console.warn("🔌 WebSocket closed:", event.code);
+
+            // 4001 = our custom "token invalid" close — don't retry, redirect
+            if (event.code === 4001) { redirectToLogin(); return; }
+
+            // Auto-reconnect with exponential backoff (max 5 retries)
+            if (wsRetries < WS_MAX_RETRIES) {
+                const delay = Math.min(1000 * 2 ** wsRetries, 30000);
+                wsRetries++;
+                console.log(`↺ Reconnecting in ${delay / 1000}s (attempt ${wsRetries})`);
+                setTimeout(connectWebSocket, delay);
+            }
+        };
+
+        socket.onerror = (err) => {
+            console.error("WS error:", err);
+            socket.close();
+        };
+    }
+
+    function closeWebSocket() {
+        if (socket) { socket.close(); socket = null; }
+    }
+
+    // Close WS cleanly when page unloads
+    window.addEventListener("beforeunload", closeWebSocket);
+
+    // ── Boot ──────────────────────────────────────────────────────────────────
+
+    (async () => {
+        const authed = await checkAuth();
+        if (!authed) return;
+
+        // Load existing notifications via REST
+        await loadNotifications();
+
+        // Then open WebSocket for real-time updates
+        connectWebSocket();
+    })();
+
+</script>
 
 </body>
 </html>
