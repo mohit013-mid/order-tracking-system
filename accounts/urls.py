@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import assign_agent, register_page, registerView, LoginView,  login_page , agent_assigned_orders, customer_orders_api
-from .views import admin_dashboard, customer_dashboard, agent_dashboard, customer_order  , admin_products , logout_view , AdminProductView
+from .views import admin_dashboard, customer_dashboard, agent_dashboard, customer_order  , admin_products , logout_view , AdminProductView, admin_dashboard_api
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -15,7 +15,7 @@ urlpatterns = [
     path("login-page/", login_page, name="login_page"),
     path("register-page/", register_page, name="register_page"),
     path("admin-dashboard/", admin_dashboard, name="admin_dashboard"),
-    # path("api/auth/admin-dashboard/", admin_dashboard_api),
+    path("admin-dashboard-api/", admin_dashboard_api),
     path("customer-dashboard/", customer_dashboard, name="customer_dashboard"),
     path("agent-dashboard/", agent_dashboard, name="agent_dashboard"),
     path("assign-agent/", assign_agent, name="assign_agent"),

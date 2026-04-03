@@ -118,8 +118,7 @@ def assign_agent(request):
         "status": order.status   # unchanged
     })
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@api_view(["GET"])
 def agent_assigned_orders(request):
 
     permission_classes = [IsAuthenticated]
@@ -174,51 +173,51 @@ def register_page(request):
 
 
 
-def admin_dashboard(request):
-    print("user9999999999999999999999", request.user)
+# def admin_dashboard(request):
+#     print("user9999999999999999999999", request.user)
     
-    permission_classes = [IsAuthenticated]
-    orders = Order.objects.all()
+#     permission_classes = [IsAuthenticated]
+#     orders = Order.objects.all()
 
-    agents = Profile.objects.filter(role="AGENT")
+#     agents = Profile.objects.filter(role="AGENT")
 
-    return render(request,"admin-dashboard.html",{
-        "orders": orders,
-        "agents": agents
-    }) 
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def admin_dashboard_api(request):
+#     return render(request,"admin-dashboard.html",{
+#         "orders": orders,
+#         "agents": agents
+#     }) 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def admin_dashboard_api(request):
 
-#     # 🔒 Optional: Only allow ADMIN
-#     if request.user.profile.role != "ADMIN":
-#         return Response({"error": "Permission denied"}, status=403)
+    # 🔒 Optional: Only allow ADMIN
+    if request.user.profile.role != "ADMIN":
+        return Response({"error": "Permission denied"}, status=403)
 
-#     orders = Order.objects.select_related("customer", "product", "agent")
-#     agents = Profile.objects.filter(role="AGENT").select_related("user")
+    orders = Order.objects.select_related("customer", "product", "agent")
+    agents = Profile.objects.filter(role="AGENT").select_related("user")
 
-#     orders_data = []
-#     for order in orders:
-#         orders_data.append({
-#             "id": order.id,
-#             "customer": order.customer.username,
-#             "product": order.product.name,
-#             "agent": order.agent.username if order.agent else None,
-#             "status": order.status,
-#             "created_at": order.created_at
-#         })
+    orders_data = []
+    for order in orders:
+        orders_data.append({
+            "id": order.id,
+            "customer": order.customer.username,
+            "product": order.product.name,
+            "agent": order.agent.username if order.agent else None,
+            "status": order.status,
+            "created_at": order.created_at
+        })
 
-#     agents_data = []
-#     for agent in agents:
-#         agents_data.append({
-#             "id": agent.user.id,
-#             "username": agent.user.username
-#         })
+    agents_data = []
+    for agent in agents:
+        agents_data.append({
+            "id": agent.user.id,
+            "username": agent.user.username
+        })
 
-#     return Response({
-#         "orders": orders_data,
-#         "agents": agents_data
-#     })
+    return Response({
+        "orders": orders_data,
+        "agents": agents_data
+    })
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -230,7 +229,6 @@ from .serializers import ProductSerializer
 
 
 class AdminProductView(APIView):
-    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]  # required for image upload
 
@@ -303,10 +301,10 @@ def customer_order(request):
 
 def admin_products(request):
     products = Product.objects.all()
-    return render(request, "admin_product.html" ,{"products": products })
+    return render(request, "admin_product.html" )
 
-# def admin_dashboard(request):
-#     return render(request,"admin-dashboard.html")
+def admin_dashboard(request):
+    return render(request,"admin-dashboard.html")
 
 def agent_dashboard(request):
     return render(request, "agent-dashboard.html")

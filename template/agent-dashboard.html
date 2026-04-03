@@ -367,38 +367,140 @@
     </div>
 
     <script>
-        const token = localStorage.getItem("access");
-        if (!token) window.location.href = "/api/auth/login-page/";
 
-        function showToast(msg, type = 'success') {
-            const t   = document.getElementById('toast');
-            const ico = document.getElementById('toastIcon');
-            document.getElementById('toastMsg').textContent = msg;
-            t.className = `toast ${type} show`;
-            ico.textContent = type === 'success' ? '✓' : '⚠';
-            setTimeout(() => t.classList.remove('show'), 3000);
+    // ── Auth helpers ──────────────────────────────────────────────────────────
+
+    /**
+     * Refreshes the access token using the stored refresh token.
+     * Returns new access token string on success, null on failure.
+     * Redirects to login automatically on failure.
+     */
+    async function refreshAccessToken() {
+        const refresh = localStorage.getItem("refresh");
+        if (!refresh) { redirectToLogin(); return null; }
+
+        try {
+            const res = await fetch("/api/auth/token/refresh/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ refresh })
+            });
+            if (!res.ok) { redirectToLogin(); return null; }
+            const data = await res.json();
+            localStorage.setItem("access", data.access);
+            return data.access;
+        } catch {
+            redirectToLogin();
+            return null;
         }
+    }
 
-        function getInitials(name) {
-            return name ? name.charAt(0).toUpperCase() : '?';
-        }
+    /**
+     * Checks if the stored access token exists and is not expired.
+     * If expired, silently refreshes it.
+     * Returns true if auth is good, false if user was redirected to login.
+     */
+    async function checkAuth() {
+        const access = localStorage.getItem("access");
+        if (!access) { redirectToLogin(); return false; }
 
-        fetch("/api/auth/agent-orders/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
+        try {
+            const payload = JSON.parse(atob(access.split('.')[1]));
+            if (payload.exp * 1000 < Date.now()) {
+                // Token expired — try to refresh silently
+                const newToken = await refreshAccessToken();
+                return newToken !== null;
             }
-        })
-        .then(res => res.json())
-        .then(data => {
+            return true; // Token still valid
+        } catch {
+            redirectToLogin();
+            return false;
+        }
+    }
+
+    function redirectToLogin() {
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+        window.location.href = "/api/auth/login-page/?reason=session_expired";
+    }
+
+    function logout() {
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+        window.location.href = "/api/auth/login-page/";
+    }
+
+    // ── Toast ─────────────────────────────────────────────────────────────────
+
+    function showToast(msg, type = 'success') {
+        const t   = document.getElementById('toast');
+        const ico = document.getElementById('toastIcon');
+        document.getElementById('toastMsg').textContent = msg;
+        t.className = `toast ${type} show`;
+        ico.textContent = type === 'success' ? '✓' : type === 'warn' ? '⚠' : '✕';
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    function getInitials(name) {
+        return name ? name.charAt(0).toUpperCase() : '?';
+    }
+
+    function showTableError() {
+        document.getElementById("ordersTable").innerHTML = `
+            <tr class="empty-row">
+                <td colspan="4">
+                    <span class="empty-icon">⚠️</span>
+                    <div class="empty-title">Failed to load orders</div>
+                    <div class="empty-sub">
+                        <button class="retry-btn" onclick="loadOrders()">↺ Retry</button>
+                    </div>
+                </td>
+            </tr>`;
+    }
+
+    // ── Load orders ───────────────────────────────────────────────────────────
+
+    async function loadOrders() {
+        const authed = await checkAuth();
+        if (!authed) return;
+
+        let token = localStorage.getItem("access");
+
+        try {
+            let res = await fetch("/api/auth/agent-orders/", {
+                method: "GET",                              // ✅ GET not POST
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            // 401 mid-session — refresh once and retry
+            if (res.status === 401) {
+                token = await refreshAccessToken();
+                if (!token) return;
+                res = await fetch("/api/auth/agent-orders/", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    }
+                });
+            }
+
+            if (!res.ok) { showTableError(); return; }
+
+            const data  = await res.json();
             const table = document.getElementById("ordersTable");
             table.innerHTML = "";
 
-            // Stats
+            // ── Stats ─────────────────────────────────────────────────────────
             const transit   = data.filter(o => ['SHIPPED','OUT_FOR_DELIVERY','PACKED'].includes(o.status)).length;
             const delivered = data.filter(o => o.status === 'DELIVERED').length;
             const pending   = data.filter(o => o.status === 'CREATED').length;
+
             document.getElementById('stat-total').textContent     = data.length;
             document.getElementById('stat-transit').textContent   = transit;
             document.getElementById('stat-delivered').textContent = delivered;
@@ -407,10 +509,10 @@
             // Bell badge — show pending count
             if (pending > 0) {
                 const badge = document.getElementById('bellBadge');
-                badge.textContent = pending;
-                badge.style.display = 'flex';
+                if (badge) { badge.textContent = pending; badge.style.display = 'flex'; }
             }
 
+            // ── Empty state ───────────────────────────────────────────────────
             if (data.length === 0) {
                 table.innerHTML = `
                     <tr class="empty-row">
@@ -423,6 +525,7 @@
                 return;
             }
 
+            // ── Render rows ───────────────────────────────────────────────────
             data.forEach((order, i) => {
                 const row = document.createElement('tr');
                 row.style.animationDelay = (i * 0.06) + 's';
@@ -449,7 +552,8 @@
                                 <option value="OUT_FOR_DELIVERY" ${order.status==='OUT_FOR_DELIVERY' ?'selected':''}>🛵 Out for Delivery</option>
                                 <option value="DELIVERED"        ${order.status==='DELIVERED'        ?'selected':''}>✅ Delivered</option>
                             </select>
-                            <button class="update-btn" id="btn-${order.order_id}" onclick="updateStatus(${order.order_id})">
+                            <button class="update-btn" id="btn-${order.order_id}"
+                                    onclick="updateStatus(${order.order_id})">
                                 Update →
                             </button>
                         </div>
@@ -457,58 +561,72 @@
                 `;
                 table.appendChild(row);
             });
-        })
-        .catch(err => {
-            console.error(err);
-            document.getElementById("ordersTable").innerHTML = `
-                <tr class="empty-row">
-                    <td colspan="4">
-                        <span class="empty-icon">⚠️</span>
-                        <div class="empty-title">Failed to load orders</div>
-                        <div class="empty-sub">Please refresh the page.</div>
-                    </td>
-                </tr>`;
-        });
 
-        function updateStatus(orderId) {
-            const status = document.getElementById("status-" + orderId).value;
-            const btn    = document.getElementById("btn-" + orderId);
+        } catch (err) {
+            console.error("Load orders error:", err);
+            showTableError();
+        }
+    }
 
-            btn.textContent = '…';
-            btn.disabled = true;
+    // ── Update order status ───────────────────────────────────────────────────
 
-            fetch("/orders/update-status/" + orderId + "/", {
+    async function updateStatus(orderId) {
+        const status = document.getElementById("status-" + orderId).value;
+        const btn    = document.getElementById("btn-" + orderId);
+
+        btn.textContent = '…';
+        btn.disabled    = true;
+
+        let token = localStorage.getItem("access");
+
+        try {
+            let res = await fetch("/orders/update-status/" + orderId + "/", {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": "Bearer " + token
                 },
                 body: JSON.stringify({ status })
-            })
-            .then(res => res.json())
-            .then(() => {
+            });
+
+            // 401 mid-request — refresh once and retry
+            if (res.status === 401) {
+                token = await refreshAccessToken();
+                if (!token) return;
+                res = await fetch("/api/auth/agent-orders/" + orderId + "/", {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify({ status })
+                });
+            }
+
+            if (res.ok) {
                 btn.textContent = '✓ Done';
                 btn.classList.add('done');
-                showToast(`Order #${orderId} → ${status.replace(/_/g,' ')}`, 'success');
+                showToast(`Order #${orderId} → ${status.replace(/_/g, ' ')}`, 'success');
                 setTimeout(() => {
                     btn.textContent = 'Update →';
                     btn.classList.remove('done');
                     btn.disabled = false;
                 }, 2500);
-            })
-            .catch(() => {
-                btn.textContent = 'Update →';
-                btn.disabled = false;
-                showToast('Failed to update status.', 'error');
-            });
-        }
+            } else {
+                throw new Error("Update failed");
+            }
 
-        function logout() {
-            localStorage.removeItem("access");
-            localStorage.removeItem("refresh");
-            window.location.href = "/api/auth/login-page/";
+        } catch {
+            btn.textContent = 'Update →';
+            btn.disabled    = false;
+            showToast('Failed to update status.', 'error');
         }
-    </script>
+    }
+
+    // ── Boot ──────────────────────────────────────────────────────────────────
+    loadOrders();
+
+</script>
 
 </body>
 </html>
