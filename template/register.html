@@ -8,7 +8,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
         rel="stylesheet">
-    <style>
+        <style>
         :root {
             --bg: #0a0a0f;
             --surface: #12121a;
@@ -610,7 +610,7 @@
                         msgIcon.textContent = "✅";
                         msgText.textContent = data.message || "Account created! Redirecting…";
                         msg.className = "show success";
-                        setTimeout(() => window.location.href = "/api/auth/login-page/", 1500);
+                        setTimeout(() => window.location.href = "/api/auth/login/", 1500);
                     } else {
                         msgIcon.textContent = "⚠️";
                         msgText.textContent = data.message || data.error || "Registration failed.";

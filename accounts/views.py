@@ -17,6 +17,9 @@ from notification.services import notify_admins , notify_user
 
 
 class registerView(APIView):
+    permission_classes = [AllowAny]
+
+    
 
     def post(self, request):
 
@@ -46,11 +49,19 @@ class registerView(APIView):
         return Response({
             "message": "User created"
         })
+    def get(self, request):
+        return render(request, "register.html")
+    
+
 
 
 class LoginView(APIView):
 
     permission_classes = [AllowAny]
+
+    def get(self, request):
+            return render(request, "login.html")
+
 
     def post(self, request):
 
