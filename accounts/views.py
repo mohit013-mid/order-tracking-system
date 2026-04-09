@@ -21,38 +21,39 @@ class registerView(APIView):
 
     
 
+    
+    def get(self , request):
+        return render(request, "register.html")
     def post(self, request):
+        print(request.method)
+        if request.method=="GET":
 
-        username = request.data.get("username")
-        password = request.data.get("password")
-        role = request.data.get("role")
+            username = request.data.get("username")
+            password = request.data.get("password")
+            role = request.data.get("role")
 
-        user = User.objects.create_user(
-            username=username,
-            password=password
-        )
+            user = User.objects.create_user(
+                username=username,
+                password=password
+            )
 
-        Profile.objects.create(
-            user=user,
-            role=role
-        )
+            Profile.objects.create(
+                user=user,
+                role=role
+            )
 
 
-        # 🔔 SEND EVENTS HERE
+            # 🔔 SEND EVENTS HERE
 
-        # 👑 Notify admins
-        notify_admins(f"New user registered: {username}")
+            # 👑 Notify admins
+            notify_admins(f"New user registered: {username}")
 
-        # 👤 Notify user (optional)
-        notify_user(user, "Welcome! Your account has been created.")
+            # 👤 Notify user (optional)
+            notify_user(user, "Welcome! Your account has been created.")
 
         return Response({
             "message": "User created"
         })
-    def get(self, request):
-        return render(request, "register.html")
-    
-
 
 
 class LoginView(APIView):
