@@ -538,11 +538,6 @@
 
         // ── Render helpers ────────────────────────────────────────────────────────
 
-        /**
-         * API response shape (ProductSerializer):
-         * { id, name, description, price, image }
-         * image is a full URL string (because context={"request": request} in serializer)
-         */
         function buildCard(product, index) {
             const imageHtml = product.image
                 ? `<img src="${product.image}" alt="${product.name}">`
@@ -606,13 +601,16 @@
                 </div>`;
         }
 
-        // ── Load products from API ────────────────────────────────────────────────
+        // ── Products cache (for edit pre-fill) ────────────────────────────────────
+        let _productsCache = [];
+
+        // ── Load products — single definition ────────────────────────────────────
 
         async function loadProducts() {
             const authed = await checkAuth();
             if (!authed) return;
 
-            // show skeletons again on retry
+            // Show skeletons while fetching
             const grid = document.getElementById('productGrid');
             if (!grid.querySelector('.skeleton-card')) {
                 grid.innerHTML = `
@@ -636,16 +634,16 @@
                     });
                 }
 
-                if (res.status === 403) { showToast("Permission denied. Admins only.", "error"); return; }
+                if (res.status === 403) { showToast("Permission denied.", "error"); return; }
                 if (!res.ok) { showGridError(); return; }
 
-                // API returns an array: [{ id, name, description, price, image }, ...]
                 const products = await res.json();
+                _productsCache = products; // cache for edit pre-fill
                 renderGrid(products);
                 updateStats(products);
 
             } catch (err) {
-                console.error("Load products error:", err);
+                console.error(err);
                 showGridError();
             }
         }
@@ -653,13 +651,13 @@
         // ── Modal ─────────────────────────────────────────────────────────────────
 
         function openModal(mode = 'add', product = null) {
-            document.getElementById('editProductId').value = '';
-            document.getElementById('productName').value   = '';
-            document.getElementById('productDesc').value   = '';
-            document.getElementById('productPrice').value  = '';
-            document.getElementById('filePreview').style.display = 'none';
-            document.getElementById('previewImg').src = '';
-            document.getElementById('productImage').value = '';
+            document.getElementById('editProductId').value          = '';
+            document.getElementById('productName').value            = '';
+            document.getElementById('productDesc').value            = '';
+            document.getElementById('productPrice').value           = '';
+            document.getElementById('filePreview').style.display   = 'none';
+            document.getElementById('previewImg').src               = '';
+            document.getElementById('productImage').value           = '';
 
             if (mode === 'edit' && product) {
                 document.getElementById('modalEyebrow').textContent  = '✦ Edit Product';
@@ -669,12 +667,10 @@
                 document.getElementById('productName').value         = product.name;
                 document.getElementById('productDesc').value         = product.description || '';
                 document.getElementById('productPrice').value        = product.price;
-
-                // show existing image as preview
                 if (product.image) {
-                    document.getElementById('previewImg').src         = product.image;
-                    document.getElementById('fileName').textContent   = 'Current image';
-                    document.getElementById('filePreview').style.display = 'block';
+                    document.getElementById('previewImg').src              = product.image;
+                    document.getElementById('fileName').textContent        = 'Current image';
+                    document.getElementById('filePreview').style.display  = 'block';
                 }
             } else {
                 document.getElementById('modalEyebrow').textContent  = '✦ New Product';
@@ -724,7 +720,7 @@
             }
         });
 
-        // ── Submit (Add or Edit) ──────────────────────────────────────────────────
+        // ── Submit product ────────────────────────────────────────────────────────
 
         async function submitProduct() {
             const btn       = document.getElementById('submitBtn');
@@ -742,7 +738,6 @@
             btn.classList.add('loading');
             btn.disabled = true;
 
-            // Build FormData — matches MultiPartParser on backend
             const formData = new FormData();
             formData.append('name',        name);
             formData.append('description', desc);
@@ -750,17 +745,10 @@
             if (imageFile) formData.append('image', imageFile);
 
             let token = localStorage.getItem('access');
-            const isEdit  = !!productId;
-            // For edit we'd need a PUT/PATCH endpoint — currently backend only has POST & DELETE
-            // so we use POST for both; adjust URL/method if you add a PUT endpoint later
-            const url     = isEdit
-                ? `/api/auth/admin_product_listing/`   // swap to PUT /<id>/ if you add it
-                : `/api/auth/admin_product_listing/`;
-            const method  = 'POST';
 
             try {
-                let res = await fetch(url, {
-                    method,
+                let res = await fetch("/api/auth/admin_product_listing/", {
+                    method: 'POST',
                     headers: { 'Authorization': 'Bearer ' + token },
                     body: formData
                 });
@@ -768,17 +756,17 @@
                 if (res.status === 401) {
                     token = await refreshAccessToken();
                     if (!token) return;
-                    res = await fetch(url, {
-                        method,
+                    res = await fetch("/api/auth/admin_product_listing/", {
+                        method: 'POST',
                         headers: { 'Authorization': 'Bearer ' + token },
                         body: formData
                     });
                 }
 
                 if (res.ok) {
-                    showToast(isEdit ? 'Product updated!' : 'Product added successfully!', 'success');
+                    showToast(productId ? 'Product updated!' : 'Product added!', 'success');
                     closeModal();
-                    setTimeout(() => loadProducts(), 1000); // reload grid without page refresh
+                    setTimeout(() => loadProducts(), 1000);
                 } else {
                     const err = await res.json().catch(() => ({}));
                     showToast(err?.error ? JSON.stringify(err.error) : 'Failed to save product.', 'error');
@@ -793,42 +781,6 @@
 
         // ── Edit product ──────────────────────────────────────────────────────────
 
-        // We store products in memory after load so edit can pre-fill the form
-        let _productsCache = [];
-
-        async function loadProducts() {
-            const authed = await checkAuth();
-            if (!authed) return;
-
-            let token = localStorage.getItem("access");
-
-            try {
-                let res = await fetch("/api/auth/admin_product_listing/", {
-                    headers: { "Authorization": "Bearer " + token }
-                });
-
-                if (res.status === 401) {
-                    token = await refreshAccessToken();
-                    if (!token) return;
-                    res = await fetch("/api/auth/admin_product_listing/", {
-                        headers: { "Authorization": "Bearer " + token }
-                    });
-                }
-
-                if (res.status === 403) { showToast("Permission denied.", "error"); return; }
-                if (!res.ok)            { showGridError(); return; }
-
-                const products = await res.json();
-                _productsCache = products;          // cache for edit pre-fill
-                renderGrid(products);
-                updateStats(products);
-
-            } catch (err) {
-                console.error(err);
-                showGridError();
-            }
-        }
-
         function editProduct(id) {
             const product = _productsCache.find(p => p.id === id);
             if (!product) { showToast("Product data not found.", "error"); return; }
@@ -840,7 +792,6 @@
         async function deleteProduct(id, btnEl) {
             if (!confirm(`Delete product #${id}? This cannot be undone.`)) return;
 
-            // Animate card out
             const card = btnEl.closest('.product-card');
             if (card) { card.style.opacity = '0.4'; card.style.pointerEvents = 'none'; }
 
@@ -876,8 +827,97 @@
             }
         }
 
+        // ── WebSocket notification popup ──────────────────────────────────────────
+
+        (function () {
+            const style = document.createElement("style");
+            style.textContent = `
+                #ws-notif-popup {
+                    position: fixed; top: 24px; right: 24px; z-index: 99999;
+                    display: flex; flex-direction: column; gap: 12px;
+                    pointer-events: none;
+                }
+                .ws-notif-toast {
+                    pointer-events: all; background: #13131e;
+                    border: 1px solid rgba(124,106,255,0.35);
+                    border-radius: 16px; padding: 16px 18px;
+                    min-width: 300px; max-width: 380px;
+                    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+                    display: flex; flex-direction: column; gap: 10px;
+                    font-family: 'DM Sans', sans-serif; color: #f0f0f8;
+                    opacity: 0; transform: translateX(40px);
+                    transition: opacity 0.35s ease, transform 0.35s ease;
+                }
+                .ws-notif-toast.show { opacity: 1; transform: translateX(0); }
+                .ws-notif-toast.hide { opacity: 0; transform: translateX(40px); }
+                .ws-notif-header { display: flex; align-items: center; gap: 8px; }
+                .ws-notif-dot { width: 8px; height: 8px; background: #7c6aff; border-radius: 50%; flex-shrink: 0; animation: wsPulse 1.4s ease-in-out infinite; }
+                @keyframes wsPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.6)} }
+                .ws-notif-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #7c6aff; }
+                .ws-notif-close { margin-left: auto; background: none; border: none; color: #6b6b8a; cursor: pointer; font-size: 16px; padding: 0; transition: color 0.2s; }
+                .ws-notif-close:hover { color: #f0f0f8; }
+                .ws-notif-message { font-size: 14px; line-height: 1.55; color: #d0d0e8; }
+                .ws-notif-link { font-size: 12px; font-weight: 600; color: #6affcf; text-decoration: none; transition: opacity 0.2s; }
+                .ws-notif-link:hover { opacity: 0.75; }
+                .ws-notif-timer { height: 3px; background: rgba(124,106,255,0.15); border-radius: 2px; overflow: hidden; }
+                .ws-notif-timer-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #7c6aff, #ff6ab0); transform-origin: left; animation: wsTimerShrink 10s linear forwards; }
+                @keyframes wsTimerShrink { from{transform:scaleX(1)} to{transform:scaleX(0)} }
+            `;
+            document.head.appendChild(style);
+
+            const container = document.createElement("div");
+            container.id = "ws-notif-popup";
+            document.body.appendChild(container);
+
+            function showNotifPopup(message) {
+                const toast = document.createElement("div");
+                toast.className = "ws-notif-toast";
+                toast.innerHTML = `
+                    <div class="ws-notif-header">
+                        <span class="ws-notif-dot"></span>
+                        <span class="ws-notif-label">New Notification</span>
+                        <button class="ws-notif-close" onclick="this.closest('.ws-notif-toast').classList.add('hide')">✕</button>
+                    </div>
+                    <div class="ws-notif-message">${message}</div>
+                    <a class="ws-notif-link" href="/not/notifications/">View all notifications →</a>
+                    <div class="ws-notif-timer"><div class="ws-notif-timer-bar"></div></div>
+                `;
+                container.appendChild(toast);
+                requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add("show")));
+                setTimeout(() => {
+                    toast.classList.add("hide");
+                    toast.addEventListener("transitionend", () => toast.remove(), { once: true });
+                }, 10000);
+            }
+
+            let socket, retries = 0;
+
+            function connect() {
+                const token = localStorage.getItem("access");
+                if (!token) return;
+                const proto = location.protocol === "https:" ? "wss" : "ws";
+                socket = new WebSocket(`${proto}://${location.host}/ws/notifications/?token=${token}`);
+                socket.onopen    = () => console.log("connected");
+                socket.onmessage = (e) => {
+                    try {
+                        const data = JSON.parse(e.data);
+                        if (data.type === "notification" && data.message) showNotifPopup(data.message);
+                    } catch {}
+                };
+                socket.onclose = (e) => {
+                    if (e.code === 4001) return;
+                    if (retries < 5) setTimeout(connect, Math.min(1000 * 2 ** retries++, 30000));
+                };
+                socket.onerror = () => socket.close();
+            }
+
+            window.addEventListener("beforeunload", () => socket && socket.close());
+            connect();
+        })();
+
         // ── Boot ──────────────────────────────────────────────────────────────────
         loadProducts();
+
     </script>
 
 </body>

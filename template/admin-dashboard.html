@@ -715,7 +715,137 @@
                 return null;
             }
         }
+// ── WebSocket notification popup ──────────────────────────────────────────
+(function () {
+    const style = document.createElement("style");
+    style.textContent = `
+        #ws-notif-popup {
+            position: fixed; top: 24px; right: 24px; z-index: 99999;
+            display: flex; flex-direction: column; gap: 12px;
+            pointer-events: none;
+        }
+        .ws-notif-toast {
+            pointer-events: all; background: #13131e;
+            border: 1px solid rgba(124,106,255,0.35);
+            border-radius: 16px; padding: 16px 18px;
+            min-width: 300px; max-width: 380px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; gap: 10px;
+            font-family: 'DM Sans', sans-serif; color: #f0f0f8;
+            opacity: 0; transform: translateX(40px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+        .ws-notif-toast.show { opacity: 1; transform: translateX(0); }
+        .ws-notif-toast.hide { opacity: 0; transform: translateX(40px); }
+        .ws-notif-header { display: flex; align-items: center; gap: 8px; }
+        .ws-notif-dot { width: 8px; height: 8px; background: #7c6aff; border-radius: 50%; flex-shrink: 0; animation: wsPulse 1.4s ease-in-out infinite; }
+        @keyframes wsPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.6)} }
+        .ws-notif-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #7c6aff; }
+        .ws-notif-close { margin-left: auto; background: none; border: none; color: #6b6b8a; cursor: pointer; font-size: 16px; padding: 0; transition: color 0.2s; }
+        .ws-notif-close:hover { color: #f0f0f8; }
+        .ws-notif-message { font-size: 14px; line-height: 1.55; color: #d0d0e8; }
+        .ws-notif-link { font-size: 12px; font-weight: 600; color: #6affcf; text-decoration: none; transition: opacity 0.2s; }
+        .ws-notif-link:hover { opacity: 0.75; }
+        .ws-notif-timer { height: 3px; background: rgba(124,106,255,0.15); border-radius: 2px; overflow: hidden; }
+        .ws-notif-timer-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #7c6aff, #ff6ab0); transform-origin: left; animation: wsTimerShrink 10s linear forwards; }
+        @keyframes wsTimerShrink { from{transform:scaleX(1)} to{transform:scaleX(0)} }
+    `;
+    document.head.appendChild(style);
 
+    const container = document.createElement("div");
+    container.id = "ws-notif-popup";
+    document.body.appendChild(container);
+
+    function showNotifPopup(message) {
+        const toast = document.createElement("div");
+        toast.className = "ws-notif-toast";
+        toast.innerHTML = `
+            <div class="ws-notif-header">
+                <span class="ws-notif-dot"></span>
+                <span class="ws-notif-label">New Notification</span>
+                <button class="ws-notif-close" onclick="this.closest('.ws-notif-toast').classList.add('hide')">✕</button>
+            </div>
+            <div class="ws-notif-message">${message}</div>
+            <a class="ws-notif-link" href="/not/notifications/">View all notifications →</a>
+            <div class="ws-notif-timer"><div class="ws-notif-timer-bar"></div></div>
+        `;
+        container.appendChild(toast);
+        requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add("show")));
+        setTimeout(() => {
+            toast.classList.add("hide");
+            toast.addEventListener("transitionend", () => toast.remove(), { once: true });
+        }, 10000);
+    }
+
+    // Wait for auth/token to be ready before connecting
+    async function connectWhenReady() {
+        let token = localStorage.getItem("access");
+        if (!token) return;
+
+        // If token expired, refresh first
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.exp * 1000 < Date.now()) {
+                const refresh = localStorage.getItem("refresh");
+                if (!refresh) return;
+                const res = await fetch("/api/auth/token/refresh/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ refresh })
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                localStorage.setItem("access", data.access);
+                token = data.access;
+            }
+        } catch { return; }
+
+        connect(token);
+    }
+
+    let socket, retries = 0;
+
+    function connect(token) {
+        const proto = location.protocol === "https:" ? "wss" : "ws";
+        socket = new WebSocket(`${proto}://${location.host}/ws/notifications/?token=${token}`);
+
+        socket.onopen = () => {
+            retries = 0;
+            console.log("🔔 WS connected");
+        };
+
+        socket.onmessage = (e) => {
+            try {
+                const data = JSON.parse(e.data);
+                console.log("📨 WS message received:", data);  // ← debug log
+                if (data.type === "notification" && data.message) {
+                    showNotifPopup(data.message);
+                }
+            } catch(err) {
+                console.error("WS parse error:", err);
+            }
+        };
+
+        socket.onclose = (e) => {
+            console.log("🔌 WS closed:", e.code);
+            if (e.code === 4001) return;
+            if (retries < 5) setTimeout(() => connectWhenReady(), Math.min(1000 * 2 ** retries++, 30000));
+        };
+
+        socket.onerror = (e) => {
+            console.error("WS error:", e);
+            socket.close();
+        };
+    }
+
+    window.addEventListener("beforeunload", () => socket && socket.close());
+
+    // Delay slightly so loadDashboard()'s auth/token refresh runs first
+    setTimeout(connectWhenReady, 800);
+})();
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+loadDashboard();
         // ── Boot ──────────────────────────────────────────────────────────────────
         loadDashboard();
     </script>
