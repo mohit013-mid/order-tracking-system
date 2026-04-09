@@ -19,6 +19,9 @@ db.sqlite3
 media/
 app/uploads/
 
+staticfiles/
+migrations/
+
 # logs
 *.log
 
