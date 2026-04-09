@@ -1,13 +1,22 @@
-env/
+# python
 __pycache__/
 *.pyc
 *.pyo
 
+# virtual env
+env/
+venv/
+
 # database
-*.db
 db.sqlite3
+*.db
+<<<<<<< HEAD
+db.sqlite3
+=======
+>>>>>>> dev
 
 # uploads
+media/
 app/uploads/
 
 # logs

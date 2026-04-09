@@ -5,151 +5,822 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Orders</title>
-
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f4f6fb;
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface2: #1a1a26;
+            --border: rgba(255, 255, 255, 0.07);
+            --accent: #7c6aff;
+            --accent2: #ff6ab0;
+            --accent3: #6affcf;
+            --text: #f0f0f8;
+            --muted: #6b6b8a;
+            --card-bg: rgba(22, 22, 36, 0.85);
+
+            /* Status colors */
+            --s-created: #f5c842;
+            --s-packed: #ff9f43;
+            --s-shipped: #7c6aff;
+            --s-out: #6affcf;
+            --s-delivered: #5af47e;
         }
 
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Grid bg ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(124, 106, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(124, 106, 255, 0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+            animation: gridShift 25s linear infinite;
+        }
+
+        @keyframes gridShift {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(60px);
+            }
+        }
+
+        /* ── Blobs ── */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(130px);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.28;
+            animation: blobFloat 18s ease-in-out infinite alternate;
+        }
+
+        .blob-1 {
+            width: 420px;
+            height: 420px;
+            background: var(--accent);
+            top: -120px;
+            left: -80px;
+        }
+
+        .blob-2 {
+            width: 340px;
+            height: 340px;
+            background: var(--accent2);
+            bottom: -80px;
+            right: -60px;
+            animation-delay: -9s;
+        }
+
+        .blob-3 {
+            width: 260px;
+            height: 260px;
+            background: var(--accent3);
+            top: 50%;
+            left: 55%;
+            animation-delay: -14s;
+        }
+
+        @keyframes blobFloat {
+            from {
+                transform: translate(0, 0) scale(1);
+            }
+
+            to {
+                transform: translate(30px, 25px) scale(1.07);
+            }
+        }
+
+        /* ── HEADER ── */
         header {
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-            color: white;
-            padding: 15px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0 48px;
+            height: 68px;
+            background: rgba(10, 10, 15, 0.75);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            animation: slideDown 0.5s ease both;
         }
 
-        header h1 {
-            margin: 0;
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Syne', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 0 20px rgba(124, 106, 255, 0.45);
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         nav a {
-            color: white;
+            color: var(--muted);
             text-decoration: none;
-            margin-left: 20px;
-            font-weight: bold;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
         }
 
         nav a:hover {
-            text-decoration: underline;
+            color: var(--text);
+            border-color: var(--border);
+            background: rgba(255, 255, 255, 0.04);
         }
 
-        .container {
-            padding: 40px;
+        .nav-logout {
+            background: rgba(255, 106, 106, 0.1) !important;
+            border-color: rgba(255, 106, 106, 0.2) !important;
+            color: #ff6a6a !important;
+        }
+
+        .nav-logout:hover {
+            background: rgba(255, 106, 106, 0.2) !important;
+            border-color: rgba(255, 106, 106, 0.4) !important;
+        }
+
+        /* ── PAGE ── */
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 52px 24px 80px;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            margin-bottom: 40px;
+            animation: fadeUp 0.6s 0.15s ease both;
+        }
+
+        @keyframes fadeUp {
+            from {
+                transform: translateY(24px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .hero-eyebrow {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .hero h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(26px, 4vw, 38px);
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* ── STATS ROW ── */
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 36px;
+            animation: fadeUp 0.6s 0.25s ease both;
+            flex-wrap: wrap;
+        }
+
+        .stat-pill {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 20px;
+            flex: 1;
+            min-width: 140px;
+            backdrop-filter: blur(12px);
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .stat-pill:hover {
+            border-color: rgba(124, 106, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .stat-pill-label {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .stat-pill-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .stat-pill-value.purple {
+            color: var(--accent);
+        }
+
+        .stat-pill-value.teal {
+            color: var(--accent3);
+        }
+
+        .stat-pill-value.pink {
+            color: var(--accent2);
+        }
+
+        /* ── TABLE CARD ── */
+        .table-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            backdrop-filter: blur(14px);
+            animation: fadeUp 0.6s 0.35s ease both;
+        }
+
+        .table-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--accent3);
+            background: rgba(106, 255, 207, 0.08);
+            border: 1px solid rgba(106, 255, 207, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--accent3);
+            border-radius: 50%;
+            animation: livePulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes livePulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(106, 255, 207, 0);
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: scale(0.8);
+                box-shadow: 0 0 0 4px rgba(106, 255, 207, 0.15);
+            }
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
         }
 
-        th,
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
+        thead tr {
+            border-bottom: 1px solid var(--border);
         }
 
         th {
-            background: #f2f2f2;
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
         }
 
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+            animation: rowIn 0.4s ease both;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: rgba(124, 106, 255, 0.05);
+        }
+
+        @keyframes rowIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        td {
+            padding: 16px 20px;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .order-id {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 13px;
+        }
+
+        .product-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .product-icon {
+            width: 34px;
+            height: 34px;
+            background: rgba(124, 106, 255, 0.12);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .product-name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .date-cell {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* ── STATUS BADGES ── */
         .status {
-            padding: 5px 10px;
-            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
             font-size: 12px;
-            font-weight: bold;
-            color: black;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            text-transform: capitalize;
+            transition: transform 0.2s;
         }
 
-        .created {
-            background: #ffe08a
+        .status:hover {
+            transform: scale(1.05);
         }
 
-        .packed {
-            background: #ffd280
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
         }
 
-        .shipped {
-            background: #9be7a3
+        .status.created {
+            background: rgba(245, 200, 66, 0.12);
+            color: var(--s-created);
+            border: 1px solid rgba(245, 200, 66, 0.25);
         }
 
-        .out_for_delivery {
-            background: #87cefa
+        .status.created .status-dot {
+            background: var(--s-created);
         }
 
-        .delivered {
-            background: #b2ffb2
+        .status.packed {
+            background: rgba(255, 159, 67, 0.12);
+            color: var(--s-packed);
+            border: 1px solid rgba(255, 159, 67, 0.25);
         }
 
-        footer {
+        .status.packed .status-dot {
+            background: var(--s-packed);
+        }
+
+        .status.shipped {
+            background: rgba(124, 106, 255, 0.12);
+            color: var(--s-shipped);
+            border: 1px solid rgba(124, 106, 255, 0.25);
+        }
+
+        .status.shipped .status-dot {
+            background: var(--s-shipped);
+            animation: dotPulse 1.6s infinite;
+        }
+
+        .status.out_for_delivery {
+            background: rgba(106, 255, 207, 0.1);
+            color: var(--s-out);
+            border: 1px solid rgba(106, 255, 207, 0.25);
+        }
+
+        .status.out_for_delivery .status-dot {
+            background: var(--s-out);
+            animation: dotPulse 1.2s infinite;
+        }
+
+        .status.delivered {
+            background: rgba(90, 244, 126, 0.1);
+            color: var(--s-delivered);
+            border: 1px solid rgba(90, 244, 126, 0.25);
+        }
+
+        .status.delivered .status-dot {
+            background: var(--s-delivered);
+        }
+
+        @keyframes dotPulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        /* ── LOADING & EMPTY ── */
+        .loading-row td {
             text-align: center;
-            padding: 20px;
-            margin-top: 40px;
-            background: #fff;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .loader {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 14px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .empty-row td {
+            text-align: center;
+            padding: 70px 20px;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 16px;
+            opacity: 0.5;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .empty-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .empty-sub {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 999;
+            background: var(--surface2);
+            border: 1px solid rgba(106, 255, 207, 0.3);
+            border-radius: 12px;
+            padding: 13px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            max-width: 300px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            width: 26px;
+            height: 26px;
+            background: rgba(106, 255, 207, 0.12);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent3);
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 24px;
+            background: rgba(10, 10, 15, 0.6);
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--muted);
+            backdrop-filter: blur(10px);
+        }
+
+        footer span {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(124, 106, 255, 0.4);
+            border-radius: 3px;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 700px) {
+            header {
+                padding: 0 20px;
+            }
+
+            .page {
+                padding: 36px 16px 60px;
+            }
+
+            .stats {
+                gap: 10px;
+            }
+
+            th,
+            td {
+                padding: 12px 14px;
+            }
+
+            th:nth-child(4),
+            td:nth-child(4) {
+                display: none;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <header>
-        <h1>My Orders</h1>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
 
+    <!-- HEADER -->
+    <header>
+        <a href="/api/auth/customer-dashboard/" class="logo">
+            <div class="logo-icon">⚡</div>
+            Customer Portal
+        </a>
         <nav>
-            <a href="/api/auth/customer-dashboard/">Dashboard</a>
-            <a href="#" onclick="logout()">Logout</a>
+            <a href="/api/auth/customer-dashboard/">← Dashboard</a>
+            <a href="#" class="nav-logout" onclick="logout()">Sign Out</a>
         </nav>
     </header>
 
-    <div class="container">
+    <!-- PAGE -->
+    <div class="page">
 
-        <h2>Your Orders</h2>
+        <!-- HERO -->
+        <div class="hero">
+            <div class="hero-eyebrow">✦ Order History</div>
+            <h1>My Orders</h1>
+            <p>All your purchases in one place. Updates arrive in real-time.</p>
+        </div>
 
-        <table>
+        <!-- STATS -->
+        <div class="stats" id="statsRow">
+            <div class="stat-pill">
+                <div class="stat-pill-label">Total Orders</div>
+                <div class="stat-pill-value purple" id="stat-total">—</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-label">In Transit</div>
+                <div class="stat-pill-value teal" id="stat-transit">—</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-label">Delivered</div>
+                <div class="stat-pill-value pink" id="stat-delivered">—</div>
+            </div>
+        </div>
 
-            <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Product</th>
-                    <th>Status</th>
-                    <th>Created At</th>
-                </tr>
-            </thead>
+        <!-- TABLE CARD -->
+        <div class="table-card">
+            <div class="table-toolbar">
+                <div class="table-title">📦 Order Tracker</div>
+                <div class="live-badge">
+                    <span class="live-dot"></span>
+                    Live Updates
+                </div>
+            </div>
 
-            <tbody id="ordersTable">
-
-                <tr>
-                    <td colspan="4">Loading orders...</td>
-                </tr>
-
-            </tbody>
-
-        </table>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Product</th>
+                        <th>Status</th>
+                        <th>Placed On</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTable">
+                    <tr class="loading-row">
+                        <td colspan="4">
+                            <div class="loader"></div>
+                            Fetching your orders…
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
     </div>
 
+    <footer>© 2026 <span>Customer Portal</span> — All rights reserved.</footer>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <div class="toast-icon">⚡</div>
+        <span id="toast-msg">Status updated!</span>
+    </div>
+
     <script>
-
+        
         const access = localStorage.getItem("access");
+        if (!access) window.location.href = "/api/auth/login-page/";
 
-        if (!access) {
-            window.location.href = "/api/auth/login-page/";
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function statusIcon(s) {
+            const icons = {
+                created: '🟡', packed: '🟠', shipped: '🚚',
+                out_for_delivery: '🛵', delivered: '✅'
+            };
+            return icons[s.toLowerCase()] || '📦';
+        }
+
+        function statusLabel(s) {
+            return s === 'out_for_delivery' ? 'Out for Delivery' : s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+        }
+
+        function formatDate(str) {
+            try {
+                return new Date(str).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            } catch { return str; }
         }
 
         fetch("/api/auth/customer_order_api/", {
-
             method: "GET",
-
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + access
             }
-
         })
             .then(res => res.json())
             .then(data => {
@@ -157,81 +828,81 @@
                 const table = document.getElementById("ordersTable");
                 table.innerHTML = "";
 
+                // Update stats
+                const transit = data.filter(o => ['shipped', 'out_for_delivery', 'packed'].includes(o.status.toLowerCase())).length;
+                const delivered = data.filter(o => o.status.toLowerCase() === 'delivered').length;
+                document.getElementById('stat-total').textContent = data.length;
+                document.getElementById('stat-transit').textContent = transit;
+                document.getElementById('stat-delivered').textContent = delivered;
+
                 if (data.length === 0) {
-
-                    table.innerHTML = `<tr><td colspan="4">No orders found</td></tr>`;
+                    table.innerHTML = `
+                    <tr class="empty-row">
+                        <td colspan="4">
+                            <span class="empty-icon">📭</span>
+                            <div class="empty-title">No orders yet</div>
+                            <div class="empty-sub">Head to the dashboard and place your first order!</div>
+                        </td>
+                    </tr>`;
                     return;
-
                 }
 
-                data.forEach(order => {
+                data.forEach((order, i) => {
+                    const row = document.createElement('tr');
+                    row.style.animationDelay = (i * 0.06) + 's';
+                    const sClass = order.status.toLowerCase();
+                    row.innerHTML = `
+                    <td><span class="order-id">#${order.id}</span></td>
+                    <td>
+                        <div class="product-cell">
+                            <div class="product-icon">${statusIcon(order.status)}</div>
+                            <span class="product-name">${order.product}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span id="status-${order.id}" class="status ${sClass}">
+                            <span class="status-dot"></span>
+                            ${statusLabel(order.status)}
+                        </span>
+                    </td>
+                    <td class="date-cell">${formatDate(order.created_at)}</td>
+                `;
+                    table.appendChild(row);
 
-                    table.innerHTML += `
-<tr>
-<td>${order.id}</td>
-<td>${order.product}</td>
-<td>
-<span id="status-${order.id}" class="status ${order.status.toLowerCase()}">
-${order.status}
-</span>
-</td>
-<td>${order.created_at}</td>
-</tr>
-`;
-
-
-
-                    /* WebSocket connection for this order */
-
+                    // WebSocket for live status updates
+                    const token = localStorage.getItem("access");
                     const socket = new WebSocket(
-                        "ws://127.0.0.1:8000/ws/orders/" + order.id + "/"
+                        "ws://127.0.0.1:8000/ws/orders/" + order.id + "/?token=" + token
                     );
 
-
-                    socket.onopen = function () {
-                        console.log("WebSocket connected for order", order.id);
-                    };
-
+                    socket.onopen = () => console.log("WS connected for order", order.id);
 
                     socket.onmessage = function (event) {
-
-                        const data = JSON.parse(event.data);
-
-                        console.log("Update received", data);
-
-                        const statusElement = document.getElementById("status-" + data.order_id);
-
-                        if (statusElement) {
-                            statusElement.innerText = data.status;
+                        const wsData = JSON.parse(event.data);
+                        const el = document.getElementById("status-" + wsData.order_id);
+                        if (el) {
+                            const newClass = wsData.status.toLowerCase();
+                            el.className = `status ${newClass}`;
+                            el.innerHTML = `<span class="status-dot"></span>${statusLabel(wsData.status)}`;
+                            showToast(`Order #${wsData.order_id} → ${statusLabel(wsData.status)}`);
                         }
-
                     };
 
-
-                    socket.onclose = function () {
-                        console.log("WebSocket disconnected");
-                    };
-
+                    socket.onclose = () => console.log("WS disconnected for order", order.id);
                 });
-
             })
             .catch(err => {
-                console.log(err);
+                console.error(err);
+                document.getElementById("ordersTable").innerHTML =
+                    `<tr class="empty-row"><td colspan="4"><span class="empty-icon">⚠️</span><div class="empty-title">Failed to load orders</div><div class="empty-sub">Please refresh the page.</div></td></tr>`;
             });
 
-
-
         function logout() {
-
             localStorage.removeItem("access");
-
             window.location.href = "/api/auth/login-page/";
-
         }
-
     </script>
 
 </body>
-
 
 </html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ── keep all your existing CSS exactly as is ── */
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface2: #1a1a26;
+            --border: rgba(255, 255, 255, 0.07);
+            --accent: #7c6aff;
+            --accent2: #ff6ab0;
+            --accent3: #6affcf;
+            --danger: #ff6a6a;
+            --text: #f0f0f8;
+            --muted: #6b6b8a;
+            --card-bg: rgba(22, 22, 36, 0.85);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+        body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(124, 106, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(124, 106, 255, 0.04) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; animation: gridShift 25s linear infinite; }
+        @keyframes gridShift { from { transform: translateY(0); } to { transform: translateY(60px); } }
+        .blob { position: fixed; border-radius: 50%; filter: blur(130px); pointer-events: none; z-index: 0; opacity: 0.28; animation: blobFloat 18s ease-in-out infinite alternate; }
+        .blob-1 { width: 420px; height: 420px; background: var(--accent); top: -120px; left: -80px; }
+        .blob-2 { width: 340px; height: 340px; background: var(--danger); bottom: -80px; right: -60px; animation-delay: -9s; }
+        @keyframes blobFloat { from { transform: translate(0, 0) scale(1); } to { transform: translate(30px, 25px) scale(1.07); } }
+        header { position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 0 48px; height: 68px; background: rgba(10, 10, 15, 0.75); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); animation: slideDown 0.5s ease both; }
+        @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .logo { display: flex; align-items: center; gap: 10px; font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; text-decoration: none; color: var(--text); }
+        .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 0 20px rgba(124, 106, 255, 0.45); }
+        .back-btn { font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); transition: all 0.2s; }
+        .back-btn:hover { color: var(--text); border-color: rgba(124, 106, 255, 0.35); background: rgba(124, 106, 255, 0.08); }
+        .page { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; padding: 52px 24px 80px; animation: fadeUp 0.6s 0.15s ease both; }
+        @keyframes fadeUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 36px; }
+        .page-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+        .page-title { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+        .unread-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 106, 106, 0.12); border: 1px solid rgba(255, 106, 106, 0.3); color: var(--danger); font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 20px; margin-top: 12px; }
+        .unread-dot { width: 6px; height: 6px; background: var(--danger); border-radius: 50%; animation: pulse 1.6s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+        .mark-all-btn { display: flex; align-items: center; gap: 7px; text-decoration: none; font-size: 13px; font-weight: 600; color: var(--accent3); background: rgba(106, 255, 207, 0.08); border: 1px solid rgba(106, 255, 207, 0.2); padding: 10px 18px; border-radius: 10px; transition: all 0.2s; white-space: nowrap; cursor: pointer; }
+        .mark-all-btn:hover { background: rgba(106, 255, 207, 0.15); border-color: rgba(106, 255, 207, 0.4); transform: translateY(-1px); }
+        .notif-list { display: flex; flex-direction: column; gap: 14px; }
+        .notif-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px 22px; backdrop-filter: blur(12px); display: flex; align-items: flex-start; gap: 16px; transition: transform 0.25s ease, border-color 0.25s, box-shadow 0.25s; animation: cardIn 0.5s ease both; position: relative; overflow: hidden; }
+        @keyframes cardIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .notif-card:hover { transform: translateX(4px); border-color: rgba(124, 106, 255, 0.3); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); }
+        .notif-card.unread { border-color: rgba(255, 106, 106, 0.25); background: rgba(255, 106, 106, 0.04); }
+        .notif-card.unread::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--danger), var(--accent2)); border-radius: 3px 0 0 3px; }
+        .notif-card.unread:hover { border-color: rgba(255, 106, 106, 0.45); }
+        .notif-icon { flex-shrink: 0; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .notif-icon.read { background: rgba(124, 106, 255, 0.12); }
+        .notif-icon.unread { background: rgba(255, 106, 106, 0.12); animation: iconPulse 2.5s ease-in-out infinite; }
+        @keyframes iconPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 106, 106, 0); } 50% { box-shadow: 0 0 0 6px rgba(255, 106, 106, 0.12); } }
+        .notif-content { flex: 1; min-width: 0; }
+        .notif-message { font-size: 14px; font-weight: 400; line-height: 1.55; color: var(--text); margin-bottom: 8px; }
+        .notif-card.unread .notif-message { font-weight: 600; }
+        .notif-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+        .notif-time { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+        .mark-read-btn { text-decoration: none; font-size: 12px; font-weight: 600; color: var(--accent3); background: rgba(106, 255, 207, 0.08); border: 1px solid rgba(106, 255, 207, 0.2); padding: 5px 12px; border-radius: 6px; transition: all 0.2s; white-space: nowrap; cursor: pointer; }
+        .mark-read-btn:hover { background: rgba(106, 255, 207, 0.18); border-color: rgba(106, 255, 207, 0.45); }
+        .empty-state { text-align: center; padding: 80px 20px; animation: fadeUp 0.5s 0.3s ease both; }
+        .empty-icon { font-size: 56px; margin-bottom: 20px; display: block; opacity: 0.5; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .empty-state h3 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+        .empty-state p { color: var(--muted); font-size: 14px; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(124, 106, 255, 0.4); border-radius: 3px; }
+        @media (max-width: 600px) { header { padding: 0 20px; } .page { padding: 36px 16px 60px; } .page-header { flex-direction: column; align-items: flex-start; gap: 16px; } }
+
+        /* ── Loading skeleton ── */
+        .skeleton { background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+        @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+        .skeleton-card { height: 80px; border-radius: 16px; margin-bottom: 14px; }
+    </style>
+</head>
+
+<body>
+
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <header>
+        <a href="/" class="logo">
+            <div class="logo-icon">⚡</div>
+            Customer Portal
+        </a>
+        <a href="javascript:history.back()" class="back-btn">← Back</a>
+    </header>
+
+    <div class="page">
+        <div class="page-header">
+            <div class="page-title-group">
+                <div class="page-eyebrow">✦ Inbox</div>
+                <h1 class="page-title">Notifications</h1>
+                <!-- ✅ Updated dynamically -->
+                <div class="unread-badge" id="unread-badge" style="display:none;">
+                    <span class="unread-dot"></span>
+                    <span id="unread-count">0</span> unread
+                </div>
+            </div>
+            <!-- ✅ Button instead of link -->
+            <button class="mark-all-btn" onclick="markAllRead()">✓ Mark All Read</button>
+        </div>
+
+        <!-- ✅ JS renders here -->
+        <div class="notif-list" id="notif-list">
+            <!-- Loading skeletons -->
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+        </div>
+    </div>
+
+    <script>
+
+    // ── Auth helpers ──────────────────────────────────────────────────────────
+
+    async function refreshAccessToken() {
+        const refresh = localStorage.getItem("refresh");
+        if (!refresh) { redirectToLogin(); return null; }
+
+        try {
+            const res = await fetch("/api/auth/token/refresh/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ refresh })
+            });
+            if (!res.ok) { redirectToLogin(); return null; }
+            const data = await res.json();
+            localStorage.setItem("access", data.access);
+            return data.access;
+        } catch {
+            redirectToLogin();
+            return null;
+        }
+    }
+
+    async function checkAuth() {
+        const access = localStorage.getItem("access");
+        if (!access) { redirectToLogin(); return false; }
+
+        try {
+            const payload = JSON.parse(atob(access.split('.')[1]));
+            if (payload.exp * 1000 < Date.now()) {
+                const newToken = await refreshAccessToken();
+                return newToken !== null;
+            }
+            return true;
+        } catch {
+            redirectToLogin();
+            return false;
+        }
+    }
+
+    function redirectToLogin() {
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+        window.location.href = "/api/auth/login-page/?reason=session_expired";
+    }
+
+    function logout() {
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+        closeWebSocket();
+        window.location.href = "/api/auth/login-page/";
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    function formatDate(str) {
+        try {
+            return new Date(str).toLocaleDateString('en-IN', {
+                day: '2-digit', month: 'short', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        } catch { return str; }
+    }
+
+    function updateUnreadBadge() {
+        const remaining = document.querySelectorAll(".notif-card.unread").length;
+        const badge     = document.getElementById("unread-badge");
+        const countEl   = document.getElementById("unread-count");
+        if (remaining > 0) {
+            badge.style.display = "inline-flex";
+            if (countEl) countEl.textContent = remaining;
+        } else {
+            badge.style.display = "none";
+        }
+    }
+
+    // ── Render ────────────────────────────────────────────────────────────────
+
+    function renderNotifications(data) {
+        const list = document.getElementById("notif-list");
+
+        const unread = data.filter(n => !n.is_read);
+        const badge  = document.getElementById("unread-badge");
+        if (unread.length > 0) {
+            badge.style.display = "inline-flex";
+            document.getElementById("unread-count").textContent = unread.length;
+        } else {
+            badge.style.display = "none";
+        }
+
+        if (data.length === 0) {
+            list.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-icon">🔕</span>
+                    <h3>All caught up!</h3>
+                    <p>You have no notifications right now.<br>We'll let you know when something happens.</p>
+                </div>`;
+            return;
+        }
+
+        list.innerHTML = data.map((n, i) => buildNotifCard(n, i)).join('');
+    }
+
+    function buildNotifCard(n, i = 0) {
+        return `
+            <div class="notif-card ${n.is_read ? '' : 'unread'}"
+                 style="animation-delay: ${0.3 + i * 0.08}s"
+                 id="notif-${n.id}">
+                <div class="notif-icon ${n.is_read ? 'read' : 'unread'}">
+                    ${n.is_read ? '🔔' : '🚨'}
+                </div>
+                <div class="notif-content">
+                    <p class="notif-message">${n.message}</p>
+                    <div class="notif-meta">
+                        <span class="notif-time">🕐 ${formatDate(n.created_at)}</span>
+                        ${!n.is_read
+                            ? `<button class="mark-read-btn" onclick="markAsRead(${n.id})">Mark as Read →</button>`
+                            : ''
+                        }
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    /**
+     * Prepend a new real-time notification card to the top of the list.
+     * Called by the WebSocket handler when a new notification arrives.
+     */
+    function prependNotifCard(n) {
+        const list = document.getElementById("notif-list");
+
+        // Remove empty state if present
+        const empty = list.querySelector(".empty-state");
+        if (empty) list.innerHTML = '';
+
+        // Build and insert at top
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = buildNotifCard(n, 0);
+        const card = wrapper.firstElementChild;
+
+        // Slide-in animation
+        card.style.opacity   = '0';
+        card.style.transform = 'translateY(-12px)';
+        list.prepend(card);
+
+        requestAnimationFrame(() => {
+            card.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+            card.style.opacity    = '1';
+            card.style.transform  = 'translateY(0)';
+        });
+
+        updateUnreadBadge();
+    }
+
+    // ── Load notifications (REST) ─────────────────────────────────────────────
+
+    async function loadNotifications() {
+        const authed = await checkAuth();
+        if (!authed) return;
+
+        let token = localStorage.getItem("access");
+
+        try {
+            let res = await fetch("/not/notifications_api/", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+
+            if (res.status === 401) {
+                token = await refreshAccessToken();
+                if (!token) return;
+                res = await fetch("/not/notifications_api/", {
+                    headers: { "Authorization": "Bearer " + token }
+                });
+            }
+
+            if (!res.ok) {
+                document.getElementById("notif-list").innerHTML = `
+                    <div class="empty-state">
+                        <span class="empty-icon">⚠️</span>
+                        <h3>Failed to load</h3>
+                        <p>Could not fetch notifications.
+                           <button class="mark-read-btn" onclick="loadNotifications()">Retry</button>
+                        </p>
+                    </div>`;
+                return;
+            }
+
+            const data = await res.json();
+            renderNotifications(data);
+
+        } catch (err) {
+            console.error("Load notifications error:", err);
+        }
+    }
+
+    // ── Mark as read (REST) ───────────────────────────────────────────────────
+
+    async function markAsRead(id) {
+        let token = localStorage.getItem("access");
+
+        let res = await fetch(`/not/api/notification/${id}/mark-read/`, {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + token }
+        });
+
+        if (res.status === 401) {
+            token = await refreshAccessToken();
+            if (!token) return;
+            res = await fetch(`/not/api/notification/${id}/mark-read/`, {
+                method: "POST",
+                headers: { "Authorization": "Bearer " + token }
+            });
+        }
+
+        if (res.ok) {
+            const card = document.getElementById(`notif-${id}`);
+            if (card) {
+                card.classList.remove("unread");
+                const icon = card.querySelector(".notif-icon");
+                if (icon) { icon.classList.replace("unread", "read"); icon.textContent = "🔔"; }
+                const btn = card.querySelector(".mark-read-btn");
+                if (btn) btn.remove();
+            }
+            updateUnreadBadge();
+        }
+    }
+
+    async function markAllRead() {
+        let token = localStorage.getItem("access");
+
+        let res = await fetch("/not/api/notification/mark-all-read/", {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + token }
+        });
+
+        if (res.status === 401) {
+            token = await refreshAccessToken();
+            if (!token) return;
+            res = await fetch("/not/api/notification/mark-all-read/", {
+                method: "POST",
+                headers: { "Authorization": "Bearer " + token }
+            });
+        }
+
+        if (res.ok) {
+            document.querySelectorAll(".notif-card.unread").forEach(card => {
+                card.classList.remove("unread");
+                const icon = card.querySelector(".notif-icon");
+                if (icon) { icon.classList.replace("unread", "read"); icon.textContent = "🔔"; }
+                const btn = card.querySelector(".mark-read-btn");
+                if (btn) btn.remove();
+            });
+            document.getElementById("unread-badge").style.display = "none";
+        }
+    }
+
+    // ── WebSocket (real-time) ─────────────────────────────────────────────────
+
+    let socket     = null;
+    let wsRetries  = 0;
+    const WS_MAX_RETRIES = 5;
+
+    function connectWebSocket() {
+        const token = localStorage.getItem("access");
+        if (!token) return;
+
+        // Pass JWT token as query param — picked up by JWTAuthMiddleware
+        const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+        const wsUrl    = `${protocol}://${window.location.host}/ws/notifications/?token=${token}`;
+
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = () => {
+            console.log("🔌 WebSocket connected");
+            wsRetries = 0; // reset retry counter on success
+        };
+
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+
+                // Consumer sends: { type: "notification", message: "..." }
+                if (data.type === "notification") {
+                    // Build a minimal notification object for the card
+                    const newNotif = {
+                        id:         Date.now(), // temp id — no mark-read needed for new push
+                        message:    data.message,
+                        is_read:    false,
+                        created_at: new Date().toISOString()
+                    };
+                    prependNotifCard(newNotif);
+                }
+            } catch (err) {
+                console.error("WS message parse error:", err);
+            }
+        };
+
+        socket.onclose = (event) => {
+            console.warn("🔌 WebSocket closed:", event.code);
+
+            // 4001 = our custom "token invalid" close — don't retry, redirect
+            if (event.code === 4001) { redirectToLogin(); return; }
+
+            // Auto-reconnect with exponential backoff (max 5 retries)
+            if (wsRetries < WS_MAX_RETRIES) {
+                const delay = Math.min(1000 * 2 ** wsRetries, 30000);
+                wsRetries++;
+                console.log(`↺ Reconnecting in ${delay / 1000}s (attempt ${wsRetries})`);
+                setTimeout(connectWebSocket, delay);
+            }
+        };
+
+        socket.onerror = (err) => {
+            console.error("WS error:", err);
+            socket.close();
+        };
+    }
+
+    function closeWebSocket() {
+        if (socket) { socket.close(); socket = null; }
+    }
+
+    // Close WS cleanly when page unloads
+    window.addEventListener("beforeunload", closeWebSocket);
+
+    // ── Boot ──────────────────────────────────────────────────────────────────
+
+    (async () => {
+        const authed = await checkAuth();
+        if (!authed) return;
+
+        // Load existing notifications via REST
+        await loadNotifications();
+
+        // Then open WebSocket for real-time updates
+        connectWebSocket();
+    })();
+
+</script>
+
+</body>
+</html>
