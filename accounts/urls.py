@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import assign_agent, register_page, registerView, LoginView,  login_page , agent_assigned_orders, customer_orders_api
-from .views import admin_dashboard, customer_dashboard, agent_dashboard, customer_order  , admin_products , logout_view , AdminProductView, admin_dashboard_api
+from .views import assign_agent, register_page, registerView, LoginView,  login_page , agent_assigned_orders, current_user ,customer_orders_api
+from .views import admin_dashboard, customer_dashboard, agent_dashboard, customer_order  , admin_products , logout_view , AdminProductView, admin_dashboard_api, current_user
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -12,6 +12,7 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("register/", registerView.as_view(), name="register"),
     path("login/", LoginView.as_view(), name="login"),
+    path("current-user/", current_user , name="current_user"),
     # path("login-page/", login_page, name="login_page"),
     # path("register-page/", register_page, name="register_page"),
     path("admin-dashboard/", admin_dashboard, name="admin_dashboard"),

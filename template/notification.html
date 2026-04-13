@@ -91,7 +91,7 @@
     <header>
         <a href="/" class="logo">
             <div class="logo-icon">⚡</div>
-            Customer Portal
+             <span id="username">Loading...</span>
         </a>
         <a href="javascript:history.back()" class="back-btn">← Back</a>
     </header>
@@ -173,6 +173,39 @@
         closeWebSocket();
         window.location.href = "/api/auth/login-page/";
     }
+
+
+
+    const token = localStorage.getItem("access");
+
+        fetch("/api/auth/current-user/", {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("username").innerText = data.username;
+            })
+            .catch(() => {
+                document.getElementById("username").innerText = "Guest";
+            });
+        // const token = localStorage.getItem("access");
+
+        fetch("/api/auth/current-user/", {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("username").innerText = data.username;
+            })
+            .catch(() => {
+                document.getElementById("username").innerText = "Guest";
+            });
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 

@@ -19,9 +19,6 @@ from notification.services import notify_admins , notify_user
 class registerView(APIView):
     permission_classes = [AllowAny]
 
-    
-
-    
     def get(self , request):
         return render(request, "register.html")
     def post(self, request):
@@ -93,6 +90,14 @@ class LoginView(APIView):
         })
 
 
+@api_view(["GET"])
+# @permission_classes([IsAuthenticated])
+def current_user(request):
+    print("current user", request.user)
+    return Response({
+        "username": request.user.username
+    })
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def assign_agent(request):
@@ -162,6 +167,9 @@ def agent_assigned_orders(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def customer_orders_api(request):
+    print("kon hai ", request.user.username)
+    user= request.user.username
+    print(user)
 
     orders = Order.objects.filter(customer=request.user).select_related("product")
 
@@ -169,6 +177,7 @@ def customer_orders_api(request):
 
     for order in orders:
         data.append({
+            "user":user,
             "id": order.id,
             "product": order.product.name,
             "status": order.status,
@@ -298,9 +307,10 @@ class AdminProductView(APIView):
 
 
 def customer_dashboard(request):
-    print("userrr", request.user)
+    print("-------userrr", request.user)
     products = Product.objects.all()
     return render(request, "customer-dashboard.html", {
+        
         "products": products
     })
 
@@ -325,4 +335,4 @@ def agent_dashboard(request):
 def logout_view(request):
     print("logout")
     logout(request)
-    return redirect("/api/auth/login-page/")
+    return redirect("/api/auth/login/")

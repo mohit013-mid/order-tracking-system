@@ -711,7 +711,7 @@
     <header>
         <a href="/api/auth/customer-dashboard/" class="logo">
             <div class="logo-icon">⚡</div>
-            Customer Portal
+            <span id="username">Loading...</span>
         </a>
         <nav>
             <a href="/api/auth/customer-dashboard/">← Dashboard</a>
@@ -786,9 +786,68 @@
     </div>
 
     <script>
-        
+        (async function checkAuth() {
+            const access = localStorage.getItem("access");
+
+            if (!access) {
+                redirectToLogin();
+                return;
+            }
+
+            try {
+                const payload = JSON.parse(atob(access.split('.')[1]));
+                const isExpired = payload.exp * 1000 < Date.now();
+
+                if (isExpired) {
+                    // ✅ Access expired — try refresh
+                    const refreshed = await tryRefreshToken();
+                    if (!refreshed) return; // redirectToLogin already called inside
+                }
+
+            } catch {
+                redirectToLogin();
+            }
+        })();
+
+        async function tryRefreshToken() {
+            const refresh = localStorage.getItem("refresh");
+
+            if (!refresh) {
+                redirectToLogin();
+                return false;
+            }
+
+            try {
+                const res = await fetch("/api/auth/token/refresh/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ refresh })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem("access", data.access);
+                    return true;
+                }
+
+                // ✅ 401 = refresh token expired
+                redirectToLogin();
+                return false;
+
+            } catch {
+                redirectToLogin();
+                return false;
+            }
+        }
+
+        function redirectToLogin() {
+            localStorage.removeItem("access");
+            localStorage.removeItem("refresh");
+            window.location.href = "/api/auth/login-page/?reason=session_expired";
+        }
+
         const access = localStorage.getItem("access");
-        if (!access) window.location.href = "/api/auth/login-page/";
+        if (!access) window.location.href = "/api/auth/login/";
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -796,6 +855,22 @@
             t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 3000);
         }
+        const token = localStorage.getItem("access");
+
+        fetch("/api/auth/current-user/", {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("username").innerText = data.username;
+            })
+            .catch(() => {
+                document.getElementById("username").innerText = "Guest";
+            });
+
 
         function statusIcon(s) {
             const icons = {
@@ -899,7 +974,7 @@
 
         function logout() {
             localStorage.removeItem("access");
-            window.location.href = "/api/auth/login-page/";
+            window.location.href = "/api/auth/login/";
         }
     </script>
 

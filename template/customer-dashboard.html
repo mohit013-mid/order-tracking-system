@@ -640,7 +640,7 @@
     <header>
         <div class="logo">
             <div class="logo-icon">⚡</div>
-            Customer Portal
+            <span id="username">Loading...</span>
         </div>
         <nav>
             <a href="/api/auth/customerorder/">📦 My Orders</a>
@@ -652,7 +652,7 @@
 
     <!-- HERO -->
     <div class="hero">
-        <div class="hero-label">✦ Dashboard</div>
+        <div class="hero-label">Customer Dashboard</div>
         <h2>Welcome back,<br><span>Valued Customer</span></h2>
         <p>Explore our latest products. Every purchase is crafted just for you.</p>
     </div>
@@ -767,8 +767,25 @@
         function redirectToLogin() {
             localStorage.removeItem("access");
             localStorage.removeItem("refresh");
-            window.location.href = "/api/auth/login-page/?reason=session_expired";
+            window.location.href = "/api/auth/login/?reason=session_expired";
         }
+
+
+        const token = localStorage.getItem("access");
+
+        fetch("/api/auth/current-user/", {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("username").innerText = data.username;
+            })
+            .catch(() => {
+                document.getElementById("username").innerText = "Guest";
+            });
 
 
         function showToast(msg) {
